@@ -1,19 +1,20 @@
 /*
  * Codex plugin MCP launcher.
  *
- * Codex expands ${PLUGIN_ROOT} to locate this file, while the child process
- * inherits the active task's working directory. This launcher keeps those
- * two roots separate: it resolves the user's project, then starts the shared
- * SpecBridge MCP bundle with an argv array and inherited stdio. No shell is
- * involved, so Windows paths and paths containing spaces stay intact.
+ * Codex starts this file through the cache-locating bootstrap in .mcp.json,
+ * while the MCP process inherits the active task's working directory. This
+ * launcher keeps those roots separate: it resolves the user's project, then
+ * loads the shared SpecBridge MCP bundle in the current process. Loading from
+ * source text is intentional: Windows Codex sandboxes can read an installed
+ * plugin file but deny Node's realpath walk over its user-profile parents.
  */
 /* eslint-disable @typescript-eslint/no-require-imports */
 /* global require, __dirname, process */
 'use strict';
 
-const { existsSync, realpathSync, statSync } = require('node:fs');
+const { existsSync, readFileSync, realpathSync, statSync } = require('node:fs');
+const Module = require('node:module');
 const path = require('node:path');
-const { spawn } = require('node:child_process');
 
 const pluginRoot = path.resolve(__dirname, '..');
 const serverBundle = path.join(__dirname, 'mcp-server.cjs');
@@ -93,6 +94,13 @@ function resolveProjectRoot() {
   return undefined;
 }
 
+function loadCommonJs(entryPath) {
+  const loaded = new Module(entryPath);
+  loaded.filename = entryPath;
+  loaded.paths = Module._nodeModulePaths(path.dirname(entryPath));
+  loaded._compile(readFileSync(entryPath, 'utf8'), entryPath);
+}
+
 if (!existsSync(serverBundle)) {
   diagnostic(
     'bundle_missing',
@@ -105,47 +113,17 @@ if (!existsSync(serverBundle)) {
   if (projectRoot === undefined) {
     process.exitCode = 1;
   } else {
-    const child = spawn(
-      process.execPath,
-      [serverBundle, '--stdio', '--project-root', projectRoot],
-      {
-        cwd: projectRoot,
-        env: process.env,
-        stdio: 'inherit',
-        shell: false,
-        windowsHide: true,
-      },
-    );
-
-    let finished = false;
-    child.once('error', (cause) => {
-      if (finished) return;
-      finished = true;
+    try {
+      process.chdir(projectRoot);
+      process.argv = [process.execPath, serverBundle, '--stdio', '--project-root', projectRoot];
+      loadCommonJs(serverBundle);
+    } catch (cause) {
       diagnostic(
-        'server_spawn_failed',
+        'server_load_failed',
         'The bundled SpecBridge MCP server could not be started.',
         cause instanceof Error ? cause.message : String(cause),
       );
       process.exitCode = 1;
-    });
-    child.once('exit', (code, signal) => {
-      if (finished) return;
-      finished = true;
-      if (signal !== null && process.platform !== 'win32') {
-        try {
-          process.kill(process.pid, signal);
-          return;
-        } catch {
-          // Fall through to a non-zero exit when signal propagation fails.
-        }
-      }
-      process.exitCode = code ?? 1;
-    });
-
-    for (const signal of ['SIGINT', 'SIGTERM']) {
-      process.on(signal, () => {
-        if (!finished) child.kill(signal);
-      });
     }
   }
 }

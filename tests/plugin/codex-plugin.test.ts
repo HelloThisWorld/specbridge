@@ -78,7 +78,16 @@ describe('Codex frontend plugin structure', () => {
     expect(server).toBeDefined();
     if (server === undefined) throw new Error('mcpServers.specbridge is missing');
     expect(server.command).toBe('node');
-    expect(server.args).toEqual(['${PLUGIN_ROOT}/dist/mcp-launcher.cjs']);
+    expect(server.args).toHaveLength(2);
+    expect(server.args[0]).toBe('-e');
+    expect(server.args[1]).toContain('SPECBRIDGE_PLUGIN_CACHE_ROOT');
+    expect(server.args[1]).toContain('process._eval');
+    expect(server.args[1]).toContain("manifest.name==='specbridge'");
+    expect(server.args[1]).toContain('installed.birthtimeMs');
+    expect(server.args[1]).toContain('b.installedAt-a.installedAt');
+    expect(server.args[1]).toContain("readFileSync(file,'utf8')");
+    expect(server.args[1]).toContain('loaded._compile(');
+    expect(server.args.join(' ')).not.toContain('${PLUGIN_ROOT}');
     expect(server.cwd).toBeUndefined();
     expect(server.env).toBeUndefined();
 
@@ -86,9 +95,11 @@ describe('Codex frontend plugin structure', () => {
     expect(launcher).toContain('SPECBRIDGE_PROJECT_ROOT');
     expect(launcher).toContain('process.cwd()');
     expect(launcher).toContain('process.env.PWD');
-    expect(launcher).toContain('spawn(');
-    expect(launcher).toContain('shell: false');
-    expect(launcher).toContain("stdio: 'inherit'");
+    expect(launcher).toContain('loadCommonJs(serverBundle)');
+    expect(launcher).toContain("readFileSync(entryPath, 'utf8')");
+    expect(launcher).toContain('loaded._compile(');
+    expect(launcher).toContain('process.chdir(projectRoot)');
+    expect(launcher).not.toContain('spawn(');
     expect(launcher).not.toContain('cmd.exe');
     expect(launcher).not.toContain('CLAUDE_PROJECT_DIR');
   });
