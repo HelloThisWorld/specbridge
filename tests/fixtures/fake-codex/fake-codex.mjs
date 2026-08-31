@@ -198,6 +198,71 @@ emit({
 });
 
 const stageMatch = /Stage to produce: (\w+)/.exec(stdin);
+const orchestrationRoleMatch = /SpecBridge orchestration role: (\w+)/.exec(stdin);
+
+if (orchestrationRoleMatch !== null) {
+  const role = orchestrationRoleMatch[1];
+  const responses = {
+    CLASSIFIER: { complexity: 'HIGH', reasons: ['architecture-sensitive work'] },
+    PLANNER: {
+      decision: 'PLAN',
+      goal: 'Implement the approved task with architectural care.',
+      steps: [
+        { id: '1', action: 'Study the existing architecture and constraints.' },
+        { id: '2', action: 'Implement the change behind the existing interfaces.' },
+        { id: '3', action: 'Add tests covering the acceptance criteria.' },
+      ],
+      testStrategy: 'Unit plus integration tests.',
+      verificationStrategy: 'Run the configured trusted verification commands.',
+      assumptions: [],
+      risks: [],
+      requiresEscalation: false,
+    },
+    CRITIC: { verdict: 'ACCEPT', reasons: ['plan is sound'] },
+    DIAGNOSER: {
+      category: 'IMPLEMENTATION_DEFECT',
+      rootCause: 'The failure originates in the save path.',
+      planValidity: 'VALID',
+      recommendedAction: 'REPAIR',
+      evidence: ['failing verifier output'],
+    },
+    REPLANNER: {
+      decision: 'REVISED_PLAN',
+      reason: 'The prior strategy conflicted with the observed architecture.',
+      goal: 'Implement via the existing extension point instead.',
+      steps: [{ id: '1', action: 'Use the existing extension point.' }],
+      assumptions: [],
+      impactsApprovedIntent: false,
+    },
+    DECOMPOSER: {
+      decision: 'SINGLE_UNIT',
+      reason: 'The objective is cohesive enough to implement as one unit.',
+      units: [],
+    },
+    EVALUATOR: {
+      verdict: 'PASS',
+      reasons: ['the candidate satisfies the projected contracts'],
+      evidenceRefs: [],
+      affectedContractIds: [],
+    },
+    AGGREGATOR: {
+      synthesis: 'The reports agree; no conflicts were detected.',
+      findings: [],
+      contractChangeSuggestions: [],
+      conflictsDetected: [],
+    },
+    BUILDER: {
+      outcome: 'CANDIDATE_COMPLETE',
+      summary: 'Implemented the bounded work unit.',
+      changedFiles: [],
+      assumptionsDiscovered: [],
+      contractChangeRequests: [],
+      knownLimitations: [],
+      blockingQuestions: [],
+    },
+  };
+  finish(JSON.stringify(responses[role] ?? responses.PLANNER));
+}
 
 function stageMarkdownFor(stage) {
   if (scenario === 'stage-invalid') {

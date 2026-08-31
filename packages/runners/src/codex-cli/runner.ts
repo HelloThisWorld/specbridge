@@ -18,6 +18,8 @@ import type {
   RunnerExecutionOptions,
   RunnerModelListResult,
   RunnerSelfTestResult,
+  StructuredInvocationInput,
+  StructuredInvocationResult,
   RunnerToolPolicy,
   StageGenerationInput,
   StageGenerationResult,
@@ -248,6 +250,122 @@ export class CodexCliRunner implements AgentRunner {
     const { report, ...rest } = mapped;
     const stageReport = report as StageRunnerReport | undefined;
     return { ...rest, ...(stageReport !== undefined ? { report: stageReport } : {}) };
+  }
+
+  async invokeStructured(
+    input: StructuredInvocationInput,
+    execution: RunnerExecutionOptions,
+  ): Promise<StructuredInvocationResult> {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== undefined) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution,
+    });
+    try {
+      const processResult = await runCodexInvocation(plan, this.config, execution);
+      const stream = parseCodexEventStream(processResult.stdout);
+      const warnings = plan.skippedFlags.map(
+        (flag) => `flag ${flag} is unsupported by this Codex CLI version and was skipped`,
+      );
+      const normalizedEvents = normalizeCodexEvents(
+        stream,
+        {
+          runner: this.name,
+          profile: this.name,
+          runId: 'pending',
+          attemptId: 'pending',
+        },
+        () => new Date().toISOString(),
+      );
+      const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
+      const base = {
+        runner: this.name,
+        rawStdout: redactCodexStdoutForRetention(processResult.stdout),
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings,
+        normalizedEvents,
+        ...(usage !== undefined ? { usage } : {}),
+        ...(stream.threadId !== undefined ? { sessionId: stream.threadId } : {}),
+      };
+      switch (processResult.status) {
+        case 'timeout':
+          return {
+            ...base,
+            outcome: 'timed-out',
+            failureReason: processResult.failureReason ?? 'timeout',
+            error: runnerError({ code: 'timed_out', message: 'The Codex process timed out.' }),
+          };
+        case 'cancelled':
+          return {
+            ...base,
+            outcome: 'cancelled',
+            failureReason: processResult.failureReason ?? 'cancelled',
+            error: runnerError({ code: 'cancelled', message: 'The Codex process was cancelled.' }),
+          };
+        case 'output-limit':
+          return {
+            ...base,
+            outcome: 'failed',
+            failureReason: processResult.failureReason ?? 'output limit exceeded',
+            error: runnerError({
+              code: 'output_limit_exceeded',
+              message: 'The Codex process exceeded its output limit.',
+            }),
+          };
+        case 'spawn-failed':
+          return {
+            ...base,
+            outcome: 'failed',
+            failureReason: processResult.failureReason ?? 'spawn failed',
+            error: runnerError({
+              code: 'executable_not_found',
+              message: 'The Codex CLI could not be started.',
+            }),
+          };
+        case 'ok':
+          break;
+        case 'nonzero-exit': {
+          const error = classifyCodexFailure(processResult.stderr, stream.errors);
+          return {
+            ...base,
+            outcome: error.code === 'permission_denied' ? 'permission-denied' : 'failed',
+            failureReason: error.message,
+            error,
+          };
+        }
+      }
+      const finalText = readLastMessage(plan) ?? stream.lastAgentMessage;
+      if (finalText === undefined || strictJsonParse(finalText) === undefined) {
+        return {
+          ...base,
+          outcome: 'malformed-output',
+          failureReason:
+            finalText === undefined
+              ? 'the runner returned no final structured result'
+              : 'the final Codex message is not a bare JSON document',
+          error: runnerError({
+            code: 'structured_output_invalid',
+            message: 'The Codex orchestration response was not a valid JSON document.',
+          }),
+          ...(finalText !== undefined ? { invalidStructuredOutput: finalText } : {}),
+        };
+      }
+      return { ...base, outcome: 'completed', text: finalText.trim() };
+    } finally {
+      cleanupCodexTempFiles(plan);
+    }
   }
 
   async executeTask(

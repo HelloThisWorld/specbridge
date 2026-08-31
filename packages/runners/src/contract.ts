@@ -179,7 +179,7 @@ export interface ProcessObservation {
   stderrTruncated: boolean;
 }
 
-interface RunnerResultBase {
+export interface RunnerResultBase {
   runner: string;
   outcome: ExecutionOutcome;
   /** Present when the outcome is not `completed`/`no-change`. */
@@ -205,6 +205,26 @@ interface RunnerResultBase {
    * applied to any file.
    */
   invalidStructuredOutput?: string;
+}
+
+/**
+ * One provider-neutral, schema-constrained orchestration invocation.
+ *
+ * Unlike stage generation and task execution this operation does not impose
+ * a SpecBridge report schema of its own. The caller supplies the exact JSON
+ * Schema for a bounded orchestration role and remains responsible for
+ * validating the returned document against its domain contract.
+ */
+export interface StructuredInvocationInput {
+  prompt: string;
+  schemaName: string;
+  outputJsonSchema: Record<string, unknown>;
+  toolPolicy: RunnerToolPolicy;
+}
+
+export interface StructuredInvocationResult extends RunnerResultBase {
+  /** Complete final response. Present only for a strict JSON document. */
+  text?: string;
 }
 
 export interface StageGenerationResult extends RunnerResultBase {
@@ -281,6 +301,15 @@ export interface AgentRunner {
   readonly declaredContextCapabilities?: RunnerContextCapabilities;
 
   detect(context: RunnerDetectionContext): Promise<RunnerDetectionResult>;
+
+  /**
+   * Additive orchestration capability. Provider-specific CLI details stay
+   * inside the adapter; orchestration never branches on runner names.
+   */
+  invokeStructured?(
+    input: StructuredInvocationInput,
+    execution: RunnerExecutionOptions,
+  ): Promise<StructuredInvocationResult>;
 
   generateStage(
     input: StageGenerationInput,

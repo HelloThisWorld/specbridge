@@ -1,6 +1,5 @@
 import { describe, expect, it } from 'vitest';
 import {
-  CLAUDE_WORKER_ID,
   LOCAL_WORKER_ID,
   driveJob,
   createJob,
@@ -115,7 +114,7 @@ describe('driveJob — StepRelay readiness scenarios', () => {
     expect(
       attempts
         .filter((attempt) => attempt.role === 'EXECUTOR')
-        .every((attempt) => attempt.workerId === CLAUDE_WORKER_ID),
+        .every((attempt) => attempt.workerId === fixture.config.defaultRunner),
     ).toBe(true);
     // The audit trail answers "why" questions from persisted state.
     const trail = readJobEvents(fixture.workspace, jobId, { limit: 500 });

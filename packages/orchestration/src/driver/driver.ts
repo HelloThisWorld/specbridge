@@ -2,7 +2,7 @@ import { existsSync, readFileSync } from 'node:fs';
 import path from 'node:path';
 import { analyzeSpec, requireSpec } from '@specbridge/compat-kiro';
 import type { LocalExecutionMode, WorkspaceInfo } from '@specbridge/core';
-import type { ClaudeProbe, RunnerRegistry } from '@specbridge/runners';
+import type { RunnerRegistry } from '@specbridge/runners';
 import type { LocalModelManager } from '@specbridge/runners';
 import type {
   AgentContractRole,
@@ -338,10 +338,6 @@ export async function driveJob(
     }
   }
 
-  // One Claude probe per driver run: the CLI's flag surface cannot change
-  // mid-run, and re-probing spawns three processes per reasoning role.
-  const probeCache: { probe: ClaudeProbe | undefined } = { probe: undefined };
-
   const localManager: LocalModelManager | undefined = createLocalManager(deps.config, (event) => {
     emit('local-model', `${event.type}: ${event.detail}`);
     if (event.type === 'ready') {
@@ -463,7 +459,6 @@ export async function driveJob(
         case 'RUN_ROLE': {
           const outcome = await handleRoleDecision(deps, jobId, decision, {
             localManager,
-            probeCache,
             signal,
             emit,
           });
@@ -1013,6 +1008,7 @@ export async function driveJob(
               ? await driveObjective({
                   workspace: deps.workspace,
                   config: deps.config,
+                  registry: deps.registry,
                   jobId,
                   specName: job.specName,
                   node,
@@ -1022,7 +1018,6 @@ export async function driveJob(
                   allowDirty,
                   runnerProfile: decision.worker.runnerProfile,
                   localManager,
-                  probeCache,
                   ...(deps.clock !== undefined ? { clock: deps.clock } : {}),
                   ...(deps.idFactory !== undefined ? { idFactory: deps.idFactory } : {}),
                   ...(signal !== undefined ? { signal } : {}),
@@ -2372,7 +2367,6 @@ async function handleRoleDecision(
   decision: Extract<SchedulerDecision, { kind: 'RUN_ROLE' }>,
   runtime: {
     localManager: LocalModelManager | undefined;
-    probeCache: { probe: ClaudeProbe | undefined };
     signal: AbortSignal | undefined;
     emit: (kind: DriverEvent['kind'], message: string) => void;
   },
@@ -2477,7 +2471,8 @@ async function handleRoleDecision(
         code: 'LARGE_WORKER_FAILED',
         message: `The large-agent ${role} failed twice: ${result.problem.slice(0, 500)}`,
         remediation: [
-          'Check the Claude Code installation with `specbridge runner doctor claude-code`.',
+          `Check runner profile "${decision.worker.runnerProfile ?? deps.config.defaultRunner}" with ` +
+            `\`specbridge runner doctor ${decision.worker.runnerProfile ?? deps.config.defaultRunner}\`.`,
           // The excerpt is the whole point of the remediation. A job blocked
           // on "the response is not a single valid JSON document" with
           // nothing retained leaves an operator a message and no evidence,
@@ -2629,7 +2624,6 @@ async function runRole(
   packet: string,
   runtime: {
     localManager: LocalModelManager | undefined;
-    probeCache: { probe: ClaudeProbe | undefined };
     signal: AbortSignal | undefined;
   },
 ): Promise<RoleWorkerResult<AgentContractRole>> {
@@ -2650,15 +2644,14 @@ async function runRole(
   const result = await runLargeRole({
     workspace: deps.workspace,
     config: deps.config,
+    registry: deps.registry,
     runnerProfile: decision.worker.runnerProfile ?? deps.config.defaultRunner,
     role,
     packet,
     scratchDir: path.join(jobDir(deps.workspace, jobId), 'scratch'),
     timeoutMs: 600_000,
     signal: runtime.signal,
-    cachedProbe: runtime.probeCache.probe,
   });
-  if (result.probe !== undefined) runtime.probeCache.probe = result.probe;
   return result;
 }
 

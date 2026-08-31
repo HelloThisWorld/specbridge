@@ -1394,6 +1394,7 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       const resumed = await driveObjective({
         workspace: fixture.workspace,
         config: fixture.driverDeps.config,
+        registry: fixture.driverDeps.registry,
         jobId: job.jobId,
         specName: 'steprelay-secondary',
         node: jobGraph.nodes[0]!,
@@ -1532,6 +1533,7 @@ describe('Secondary Objective Builder governed lifecycle', () => {
       const resumed = await driveObjective({
         workspace: fixture.workspace,
         config: fixture.driverDeps.config,
+        registry: fixture.driverDeps.registry,
         jobId: job.jobId,
         specName: 'steprelay-secondary',
         node: jobGraph.nodes[0]!,

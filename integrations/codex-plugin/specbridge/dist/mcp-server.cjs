@@ -42984,6 +42984,29 @@ function parseClaudeEnvelope(stdout) {
   }
   return { problem: "no JSON result envelope found in the runner output" };
 }
+var MAX_STDERR_DIAGNOSTIC_CHARS = 500;
+var CREDENTIAL_PATTERNS = [
+  /\bsk-[A-Za-z0-9_-]{8,}/gi,
+  /\bbearer\s+[A-Za-z0-9._-]{8,}/gi,
+  /\boauth-[A-Za-z0-9-]{6,}/gi,
+  /\b(?:api[-_]?keys?|access[-_]?tokens?|secrets?|passwords?)\b(?:\s*[:=]\s*\S+)?/gi
+];
+function redactCredentials(text15) {
+  let redacted = text15;
+  for (const pattern of CREDENTIAL_PATTERNS) redacted = redacted.replace(pattern, "[redacted]");
+  return redacted;
+}
+function stderrDiagnostic(stderr) {
+  const collapsed = redactCredentials(stderr).replace(/\s+/g, " ").trim();
+  if (collapsed.length === 0) return void 0;
+  if (collapsed.length <= MAX_STDERR_DIAGNOSTIC_CHARS) return collapsed;
+  return `${collapsed.slice(0, MAX_STDERR_DIAGNOSTIC_CHARS)}\u2026 [truncated]`;
+}
+function claudeFailureProblem(problem, processResult) {
+  if (processResult.status !== "nonzero-exit") return problem;
+  const diagnostic = stderrDiagnostic(processResult.stderr);
+  return diagnostic === void 0 ? problem : `${problem} (claude stderr: ${diagnostic})`;
+}
 var ClaudeCodeRunner = class {
   name = "claude-code";
   kind = "claude-code";
@@ -43124,6 +43147,85 @@ var ClaudeCodeRunner = class {
     const { report, ...rest } = mapped;
     const stageReport = report;
     return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async invokeStructured(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution
+    });
+    try {
+      const processResult = await runClaudeInvocation(plan, this.config, execution);
+      const parsed = parseClaudeEnvelope(processResult.stdout);
+      const usage = usageFromEnvelope(parsed.envelope, processResult.observation.durationMs);
+      const cost = costFromEnvelope(parsed.envelope);
+      const base = {
+        runner: this.name,
+        rawStdout: processResult.stdout,
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings: plan.skippedFlags.map(
+          (flag) => `flag ${flag} is unsupported by this Claude Code version and was skipped`
+        ),
+        ...parsed.envelope?.session_id !== void 0 ? { sessionId: parsed.envelope.session_id } : {},
+        ...usage !== void 0 ? { usage } : {},
+        ...cost !== void 0 ? { cost } : {}
+      };
+      switch (processResult.status) {
+        case "timeout":
+          return { ...base, outcome: "timed-out", failureReason: processResult.failureReason ?? "timeout" };
+        case "cancelled":
+          return { ...base, outcome: "cancelled", failureReason: processResult.failureReason ?? "cancelled" };
+        case "output-limit":
+        case "spawn-failed":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? processResult.status
+          };
+        case "ok":
+        case "nonzero-exit":
+          break;
+      }
+      if (this.looksPermissionDenied(processResult, parsed.envelope?.subtype, parsed.envelope)) {
+        return {
+          ...base,
+          outcome: "permission-denied",
+          failureReason: "Claude Code reported a permission denial."
+        };
+      }
+      if (processResult.status === "nonzero-exit" || parsed.envelope?.is_error === true) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: processResult.status === "nonzero-exit" ? claudeFailureProblem(parsed.problem ?? "the runner produced no output", processResult) : `Claude Code reported an error result${parsed.envelope?.subtype !== void 0 ? ` (${parsed.envelope.subtype})` : ""}`,
+          ...parsed.reportText !== void 0 ? { invalidStructuredOutput: parsed.reportText } : {}
+        };
+      }
+      const text15 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText;
+      if (text15 === void 0 || safeJsonParse(text15) === void 0) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: parsed.problem ?? "the runner returned no valid JSON document",
+          ...text15 !== void 0 ? { invalidStructuredOutput: text15 } : {}
+        };
+      }
+      return { ...base, outcome: "completed", text: text15.trim() };
+    } finally {
+      cleanupTempFiles(plan);
+    }
   }
   async executeTask(input, execution) {
     return this.runTask(input.prompt, execution, {
@@ -44160,6 +44262,115 @@ var CodexCliRunner = class {
     const { report, ...rest } = mapped;
     const stageReport = report;
     return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async invokeStructured(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution
+    });
+    try {
+      const processResult = await runCodexInvocation(plan, this.config, execution);
+      const stream = parseCodexEventStream(processResult.stdout);
+      const warnings = plan.skippedFlags.map(
+        (flag) => `flag ${flag} is unsupported by this Codex CLI version and was skipped`
+      );
+      const normalizedEvents = normalizeCodexEvents(
+        stream,
+        {
+          runner: this.name,
+          profile: this.name,
+          runId: "pending",
+          attemptId: "pending"
+        },
+        () => (/* @__PURE__ */ new Date()).toISOString()
+      );
+      const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
+      const base = {
+        runner: this.name,
+        rawStdout: redactCodexStdoutForRetention(processResult.stdout),
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings,
+        normalizedEvents,
+        ...usage !== void 0 ? { usage } : {},
+        ...stream.threadId !== void 0 ? { sessionId: stream.threadId } : {}
+      };
+      switch (processResult.status) {
+        case "timeout":
+          return {
+            ...base,
+            outcome: "timed-out",
+            failureReason: processResult.failureReason ?? "timeout",
+            error: runnerError({ code: "timed_out", message: "The Codex process timed out." })
+          };
+        case "cancelled":
+          return {
+            ...base,
+            outcome: "cancelled",
+            failureReason: processResult.failureReason ?? "cancelled",
+            error: runnerError({ code: "cancelled", message: "The Codex process was cancelled." })
+          };
+        case "output-limit":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? "output limit exceeded",
+            error: runnerError({
+              code: "output_limit_exceeded",
+              message: "The Codex process exceeded its output limit."
+            })
+          };
+        case "spawn-failed":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? "spawn failed",
+            error: runnerError({
+              code: "executable_not_found",
+              message: "The Codex CLI could not be started."
+            })
+          };
+        case "ok":
+          break;
+        case "nonzero-exit": {
+          const error2 = classifyCodexFailure(processResult.stderr, stream.errors);
+          return {
+            ...base,
+            outcome: error2.code === "permission_denied" ? "permission-denied" : "failed",
+            failureReason: error2.message,
+            error: error2
+          };
+        }
+      }
+      const finalText = readLastMessage(plan) ?? stream.lastAgentMessage;
+      if (finalText === void 0 || strictJsonParse(finalText) === void 0) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: finalText === void 0 ? "the runner returned no final structured result" : "the final Codex message is not a bare JSON document",
+          error: runnerError({
+            code: "structured_output_invalid",
+            message: "The Codex orchestration response was not a valid JSON document."
+          }),
+          ...finalText !== void 0 ? { invalidStructuredOutput: finalText } : {}
+        };
+      }
+      return { ...base, outcome: "completed", text: finalText.trim() };
+    } finally {
+      cleanupCodexTempFiles(plan);
+    }
   }
   async executeTask(input, execution) {
     return this.runTask(input.prompt, execution, {});

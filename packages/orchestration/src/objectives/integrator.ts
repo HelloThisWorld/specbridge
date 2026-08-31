@@ -6,7 +6,7 @@ import {
   completeInteractiveTask,
 } from '@specbridge/execution';
 import { runSafeProcess } from '@specbridge/runners';
-import type { ClaudeProbe } from '@specbridge/runners';
+import type { RunnerRegistry } from '@specbridge/runners';
 import type { Clock } from '@specbridge/workflow';
 import type { FailureCategory } from '../vocabulary.js';
 import { jobDir } from '../jobs/store.js';
@@ -46,6 +46,8 @@ export interface IntegrationCandidate {
 export interface IntegrateObjectiveInput {
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  /** Optional for source compatibility; the worker can reconstruct it from config. */
+  registry?: RunnerRegistry | undefined;
   jobId: string;
   specName: string;
   /** The approved objective's task id (the checkbox the pipeline may flip). */
@@ -58,7 +60,6 @@ export interface IntegrateObjectiveInput {
   clock?: Clock | undefined;
   idFactory?: (() => string) | undefined;
   signal?: AbortSignal | undefined;
-  cachedProbe?: ClaudeProbe | undefined;
   onProgress?: ((message: string) => void) | undefined;
   /** Bounded reconciliation dispatch timeout. */
   reconcileTimeoutMs?: number | undefined;
@@ -210,6 +211,7 @@ export async function integrateObjective(input: IntegrateObjectiveInput): Promis
     const reconcile = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: input.runnerProfile,
       role: 'BUILDER',
       packet,
@@ -217,7 +219,6 @@ export async function integrateObjective(input: IntegrateObjectiveInput): Promis
       scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
       timeoutMs: input.reconcileTimeoutMs ?? 600_000,
       ...(input.signal !== undefined ? { signal: input.signal } : {}),
-      ...(input.cachedProbe !== undefined ? { cachedProbe: input.cachedProbe } : {}),
     });
     if (!reconcile.ok || reconcile.output.outcome !== 'CANDIDATE_COMPLETE') {
       await abort(`reconciliation of ${entry.unit.workUnitId} failed`);

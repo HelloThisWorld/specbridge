@@ -9,6 +9,7 @@ import {
 import type { JobWorkerProfile ,
   OrchestrationError} from '@specbridge/orchestration';
 import { setupOrchestrationFixture } from '../helpers-orchestration.js';
+import { setupExecutionFixtureV2 } from '../helpers-execution.js';
 
 /**
  * Role routing: local-first, escalate-on-evidence, and the executor is
@@ -57,6 +58,17 @@ describe('resolveWorkers', () => {
     expect(workers).toHaveLength(1);
     expect(workers[0]?.reasoningTier).toBe('LARGE_AGENT');
     expect(workers[0]?.repositoryWrite).toBe(true);
+  });
+
+  it('uses the configured Codex default profile as the large worker identity', () => {
+    const fixture = setupExecutionFixtureV2({
+      useFakeCodex: true,
+      defaultRunner: 'codex-default',
+    });
+    const workers = resolveWorkers(fixture.config);
+    expect(workers).toHaveLength(1);
+    expect(workers[0]?.workerId).toBe('codex-default');
+    expect(workers[0]?.runnerProfile).toBe('codex-default');
   });
 
   it('with local inference enabled and coherent, the local worker joins the roster', () => {
