@@ -15,7 +15,7 @@ import {
   readDecisions,
   readSpecCandidate,
 } from '@specbridge/mission';
-import type { ClaudeProbe, LocalModelManager } from '@specbridge/runners';
+import type { LocalModelManager, RunnerRegistry } from '@specbridge/runners';
 import type { Clock } from '@specbridge/workflow';
 import type { ResearchBridge } from '../research/index.js';
 import {
@@ -188,6 +188,10 @@ import {
 export interface ObjectiveDriveInput {
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  /** Optional for source compatibility; production injects the shared registry. */
+  registry?: RunnerRegistry | undefined;
+  /** @deprecated Retained as an ignored source-compatibility field. */
+  probeCache?: unknown;
   jobId: string;
   specName: string;
   node: JobNode;
@@ -197,7 +201,6 @@ export interface ObjectiveDriveInput {
   allowDirty: boolean;
   runnerProfile: string | undefined;
   localManager?: LocalModelManager | undefined;
-  probeCache: { probe: ClaudeProbe | undefined };
   clock?: Clock | undefined;
   idFactory?: (() => string) | undefined;
   signal?: AbortSignal | undefined;
@@ -437,6 +440,7 @@ async function decomposeObjective(
           const large = await runLargeObjectiveRole({
             workspace: input.workspace,
             config: input.config,
+            registry: input.registry,
             runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
             role: 'DECOMPOSER',
             packet,
@@ -444,9 +448,7 @@ async function decomposeObjective(
             scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
             timeoutMs: 600_000,
             signal: input.signal,
-            cachedProbe: input.probeCache.probe,
           });
-          if (large.probe !== undefined) input.probeCache.probe = large.probe;
           return large;
         })();
   input.countWorkerRun({
@@ -1754,6 +1756,7 @@ async function executeBuilder(
     const reconcile = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
       role: 'BUILDER',
       packet,
@@ -1765,7 +1768,6 @@ async function executeBuilder(
       ),
       timeoutMs: input.policy.objectives.builderTimeoutMs,
       signal: input.signal,
-      cachedProbe: input.probeCache.probe,
     });
     if (!reconcile.ok || reconcile.output.outcome !== 'CANDIDATE_COMPLETE') {
       // Say why the RECONCILIATION failed, not just why the apply did — the
@@ -1783,7 +1785,6 @@ async function executeBuilder(
         },
       };
     }
-    if (reconcile.probe !== undefined) input.probeCache.probe = reconcile.probe;
   }
 
   if (prepared.priorCandidatePatch !== undefined && prepared.priorCandidatePatch.trim().length > 0) {
@@ -1897,6 +1898,7 @@ async function executeBuilder(
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
     config: input.config,
+    registry: input.registry,
     runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
     role: 'BUILDER',
     packet,
@@ -1908,9 +1910,7 @@ async function executeBuilder(
     ),
     timeoutMs: input.policy.objectives.builderTimeoutMs,
     signal: input.signal,
-    cachedProbe: input.probeCache.probe,
   });
-  if (result.probe !== undefined) input.probeCache.probe = result.probe;
   if (!result.ok && isStrongQuotaFailure(result.problem)) {
     const resource = quotaFailureResource({
       observedAt: nowIso(input),
@@ -2818,10 +2818,11 @@ async function runSemanticEvaluation(
   input.onProgress?.(`EVALUATOR on ${selection.worker.workerId} for ${unitId}`);
   const runLarge = async (
     packetOverride?: string,
-  ): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole>>> => {
+  ): Promise<Awaited<ReturnType<typeof runLargeObjectiveRole<'EVALUATOR'>>>> => {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: 'EVALUATOR',
       packet: packetOverride ?? packet,
@@ -2829,9 +2830,7 @@ async function runSemanticEvaluation(
       scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
       timeoutMs: 600_000,
       signal: input.signal,
-      cachedProbe: input.probeCache.probe,
     });
-    if (large.probe !== undefined) input.probeCache.probe = large.probe;
     return large;
   };
   const ranLocally =
@@ -3681,6 +3680,7 @@ async function maybeAggregateSemantically(
           const large = await runLargeObjectiveRole({
             workspace: input.workspace,
             config: input.config,
+            registry: input.registry,
             runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
             role: 'AGGREGATOR',
             packet,
@@ -3688,9 +3688,7 @@ async function maybeAggregateSemantically(
             scratchDir: path.join(jobDir(input.workspace, input.jobId), 'scratch'),
             timeoutMs: 600_000,
             signal: input.signal,
-            cachedProbe: input.probeCache.probe,
           });
-          if (large.probe !== undefined) input.probeCache.probe = large.probe;
           return large;
         })();
   input.countWorkerRun({
@@ -3830,6 +3828,7 @@ async function integrateVerifiedCandidates(
   const result = await integrateObjective({
     workspace: input.workspace,
     config: input.config,
+    registry: input.registry,
     jobId: input.jobId,
     // Reconciling a conflicting candidate is a BUILD-sized job, not a
     // question-sized one: the worker reads the conflict, understands two
@@ -3848,7 +3847,6 @@ async function integrateVerifiedCandidates(
     clock: input.clock,
     idFactory: input.idFactory,
     signal: input.signal,
-    cachedProbe: input.probeCache.probe,
     onProgress: input.onProgress,
   });
   if (!result.ok) {

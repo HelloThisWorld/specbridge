@@ -29,9 +29,9 @@ var __toESM = (mod, isNodeMode, target) => (target = mod != null ? __create(__ge
   mod
 ));
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/error.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/error.js
 var require_error = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/error.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/error.js"(exports2) {
     "use strict";
     var CommanderError2 = class extends Error {
       /**
@@ -65,9 +65,9 @@ var require_error = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/argument.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/argument.js
 var require_argument = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/argument.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/argument.js"(exports2) {
     "use strict";
     var { InvalidArgumentError: InvalidArgumentError2 } = require_error();
     var Argument2 = class {
@@ -193,9 +193,9 @@ var require_argument = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/help.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/help.js
 var require_help = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/help.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/help.js"(exports2) {
     "use strict";
     var { humanReadableArgName } = require_argument();
     var Help2 = class {
@@ -608,9 +608,9 @@ var require_help = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/option.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/option.js
 var require_option = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/option.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/option.js"(exports2) {
     "use strict";
     var { InvalidArgumentError: InvalidArgumentError2 } = require_error();
     var Option2 = class {
@@ -881,9 +881,9 @@ var require_option = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js
 var require_suggestSimilar = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/suggestSimilar.js"(exports2) {
     "use strict";
     var maxDistance = 3;
     function editDistance(a2, b) {
@@ -962,9 +962,9 @@ var require_suggestSimilar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/command.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/command.js
 var require_command = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/command.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/lib/command.js"(exports2) {
     "use strict";
     var EventEmitter2 = require("events").EventEmitter;
     var childProcess = require("child_process");
@@ -3006,9 +3006,9 @@ Expecting one of '${allowedValues.join("', '")}'`);
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/index.js
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/index.js
 var require_commander = __commonJS({
-  "../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/index.js"(exports2) {
     "use strict";
     var { Argument: Argument2 } = require_argument();
     var { Command: Command2 } = require_command();
@@ -3029,9 +3029,9 @@ var require_commander = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js
 var require_identity = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/identity.js"(exports2) {
     "use strict";
     var ALIAS = /* @__PURE__ */ Symbol.for("yaml.alias");
     var DOC = /* @__PURE__ */ Symbol.for("yaml.document");
@@ -3086,9 +3086,9 @@ var require_identity = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js
 var require_visit = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/visit.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var BREAK = /* @__PURE__ */ Symbol("break visit");
@@ -3244,9 +3244,9 @@ var require_visit = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js
 var require_directives = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/directives.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var visit = require_visit();
@@ -3415,9 +3415,9 @@ var require_directives = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js
 var require_anchors = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/anchors.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var visit = require_visit();
@@ -3485,9 +3485,9 @@ var require_anchors = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js
 var require_applyReviver = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/applyReviver.js"(exports2) {
     "use strict";
     function applyReviver(reviver, obj, key, val) {
       if (val && typeof val === "object") {
@@ -3535,9 +3535,9 @@ var require_applyReviver = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js
 var require_toJS = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/toJS.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     function toJS(value, arg, ctx) {
@@ -3565,9 +3565,9 @@ var require_toJS = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js
 var require_Node = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Node.js"(exports2) {
     "use strict";
     var applyReviver = require_applyReviver();
     var identity3 = require_identity();
@@ -3606,9 +3606,9 @@ var require_Node = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js
 var require_Alias = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Alias.js"(exports2) {
     "use strict";
     var anchors = require_anchors();
     var visit = require_visit();
@@ -3722,9 +3722,9 @@ var require_Alias = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js
 var require_Scalar = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Scalar.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Node = require_Node();
@@ -3752,9 +3752,9 @@ var require_Scalar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js
 var require_createNode = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/createNode.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var identity3 = require_identity();
@@ -3827,9 +3827,9 @@ var require_createNode = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js
 var require_Collection = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Collection.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var identity3 = require_identity();
@@ -3970,9 +3970,9 @@ var require_Collection = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js
 var require_stringifyComment = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyComment.js"(exports2) {
     "use strict";
     var stringifyComment = (str) => str.replace(/^(?!$)(?: $)?/gm, "#");
     function indentComment(comment, indent) {
@@ -3987,9 +3987,9 @@ var require_stringifyComment = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js
 var require_foldFlowLines = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/foldFlowLines.js"(exports2) {
     "use strict";
     var FOLD_FLOW = "flow";
     var FOLD_BLOCK = "block";
@@ -4123,9 +4123,9 @@ ${indent}${text15.slice(fold + 1, end2)}`;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js
 var require_stringifyString = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyString.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var foldFlowLines = require_foldFlowLines();
@@ -4406,9 +4406,9 @@ ${indent}`);
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js
 var require_stringify = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringify.js"(exports2) {
     "use strict";
     var anchors = require_anchors();
     var identity3 = require_identity();
@@ -4530,9 +4530,9 @@ ${ctx.indent}${str}`;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js
 var require_stringifyPair = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyPair.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -4663,9 +4663,9 @@ ${ctx.indent}`;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js
 var require_log = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/log.js"(exports2) {
     "use strict";
     var node_process = require("process");
     function debug(logLevel, ...messages) {
@@ -4685,9 +4685,9 @@ var require_log = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js
 var require_merge = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/merge.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -4745,9 +4745,9 @@ var require_merge = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js
 var require_addPairToJSMap = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/addPairToJSMap.js"(exports2) {
     "use strict";
     var log = require_log();
     var merge2 = require_merge();
@@ -4809,9 +4809,9 @@ var require_addPairToJSMap = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js
 var require_Pair = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/Pair.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var stringifyPair = require_stringifyPair();
@@ -4849,9 +4849,9 @@ var require_Pair = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js
 var require_stringifyCollection = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyCollection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var stringify = require_stringify();
@@ -5000,9 +5000,9 @@ ${indent}${end}`;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js
 var require_YAMLMap = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLMap.js"(exports2) {
     "use strict";
     var stringifyCollection = require_stringifyCollection();
     var addPairToJSMap = require_addPairToJSMap();
@@ -5144,9 +5144,9 @@ var require_YAMLMap = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js
 var require_map = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/map.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var YAMLMap = require_YAMLMap();
@@ -5166,9 +5166,9 @@ var require_map = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js
 var require_YAMLSeq = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/nodes/YAMLSeq.js"(exports2) {
     "use strict";
     var createNode = require_createNode();
     var stringifyCollection = require_stringifyCollection();
@@ -5282,9 +5282,9 @@ var require_YAMLSeq = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js
 var require_seq = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/seq.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var YAMLSeq = require_YAMLSeq();
@@ -5304,9 +5304,9 @@ var require_seq = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js
 var require_string = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/string.js"(exports2) {
     "use strict";
     var stringifyString = require_stringifyString();
     var string3 = {
@@ -5323,9 +5323,9 @@ var require_string = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js
 var require_null = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/common/null.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var nullTag = {
@@ -5341,9 +5341,9 @@ var require_null = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js
 var require_bool = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/bool.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var boolTag = {
@@ -5365,9 +5365,9 @@ var require_bool = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js
 var require_stringifyNumber = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyNumber.js"(exports2) {
     "use strict";
     function stringifyNumber({ format: format2, minFractionDigits, tag, value }) {
       if (typeof value === "bigint")
@@ -5392,9 +5392,9 @@ var require_stringifyNumber = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js
 var require_float = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/float.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var stringifyNumber = require_stringifyNumber();
@@ -5438,9 +5438,9 @@ var require_float = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js
 var require_int = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/int.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -5483,9 +5483,9 @@ var require_int = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js
 var require_schema = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/core/schema.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -5511,9 +5511,9 @@ var require_schema = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js
 var require_schema2 = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/json/schema.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var map = require_map();
@@ -5578,9 +5578,9 @@ var require_schema2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js
 var require_binary = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/binary.js"(exports2) {
     "use strict";
     var node_buffer = require("buffer");
     var Scalar = require_Scalar();
@@ -5644,9 +5644,9 @@ var require_binary = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js
 var require_pairs = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/pairs.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -5722,9 +5722,9 @@ ${cn.comment}` : item.comment;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js
 var require_omap = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/omap.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var toJS = require_toJS();
@@ -5800,9 +5800,9 @@ var require_omap = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js
 var require_bool2 = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/bool.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     function boolStringify({ value, source }, ctx) {
@@ -5832,9 +5832,9 @@ var require_bool2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js
 var require_float2 = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/float.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var stringifyNumber = require_stringifyNumber();
@@ -5881,9 +5881,9 @@ var require_float2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js
 var require_int2 = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/int.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     var intIdentify = (value) => typeof value === "bigint" || Number.isInteger(value);
@@ -5960,9 +5960,9 @@ var require_int2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js
 var require_set = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/set.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -6049,9 +6049,9 @@ var require_set = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js
 var require_timestamp = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/timestamp.js"(exports2) {
     "use strict";
     var stringifyNumber = require_stringifyNumber();
     function parseSexagesimal(str, asBigInt) {
@@ -6137,9 +6137,9 @@ var require_timestamp = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js
 var require_schema3 = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/yaml-1.1/schema.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -6181,9 +6181,9 @@ var require_schema3 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js
 var require_tags = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/tags.js"(exports2) {
     "use strict";
     var map = require_map();
     var _null4 = require_null();
@@ -6275,9 +6275,9 @@ var require_tags = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js
 var require_Schema = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/schema/Schema.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var map = require_map();
@@ -6307,9 +6307,9 @@ var require_Schema = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js
 var require_stringifyDocument = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/stringify/stringifyDocument.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var stringify = require_stringify();
@@ -6387,9 +6387,9 @@ var require_stringifyDocument = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js
 var require_Document = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/doc/Document.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var Collection = require_Collection();
@@ -6696,9 +6696,9 @@ var require_Document = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js
 var require_errors = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/errors.js"(exports2) {
     "use strict";
     var YAMLError = class extends Error {
       constructor(name, pos, code2, message2) {
@@ -6761,9 +6761,9 @@ ${pointer}
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js
 var require_resolve_props = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-props.js"(exports2) {
     "use strict";
     function resolveProps(tokens2, { flow, indicator, next, offset, onError, parentIndent, startOnNewline }) {
       let spaceBefore = false;
@@ -6895,9 +6895,9 @@ var require_resolve_props = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js
 var require_util_contains_newline = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-contains-newline.js"(exports2) {
     "use strict";
     function containsNewline(key) {
       if (!key)
@@ -6937,9 +6937,9 @@ var require_util_contains_newline = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js
 var require_util_flow_indent_check = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-flow-indent-check.js"(exports2) {
     "use strict";
     var utilContainsNewline = require_util_contains_newline();
     function flowIndentCheck(indent, fc, onError) {
@@ -6955,9 +6955,9 @@ var require_util_flow_indent_check = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js
 var require_util_map_includes = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-map-includes.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     function mapIncludes(ctx, items, search) {
@@ -6971,9 +6971,9 @@ var require_util_map_includes = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js
 var require_resolve_block_map = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-map.js"(exports2) {
     "use strict";
     var Pair = require_Pair();
     var YAMLMap = require_YAMLMap();
@@ -7079,9 +7079,9 @@ var require_resolve_block_map = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js
 var require_resolve_block_seq = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-seq.js"(exports2) {
     "use strict";
     var YAMLSeq = require_YAMLSeq();
     var resolveProps = require_resolve_props();
@@ -7130,9 +7130,9 @@ var require_resolve_block_seq = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js
 var require_resolve_end = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-end.js"(exports2) {
     "use strict";
     function resolveEnd(end, offset, reqSpace, onError) {
       let comment = "";
@@ -7173,9 +7173,9 @@ var require_resolve_end = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js
 var require_resolve_flow_collection = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-collection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Pair = require_Pair();
@@ -7367,9 +7367,9 @@ var require_resolve_flow_collection = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js
 var require_compose_collection = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-collection.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -7432,9 +7432,9 @@ var require_compose_collection = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js
 var require_resolve_block_scalar = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-block-scalar.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     function resolveBlockScalar(ctx, scalar, onError) {
@@ -7615,9 +7615,9 @@ var require_resolve_block_scalar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js
 var require_resolve_flow_scalar = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/resolve-flow-scalar.js"(exports2) {
     "use strict";
     var Scalar = require_Scalar();
     var resolveEnd = require_resolve_end();
@@ -7835,9 +7835,9 @@ var require_resolve_flow_scalar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js
 var require_compose_scalar = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-scalar.js"(exports2) {
     "use strict";
     var identity3 = require_identity();
     var Scalar = require_Scalar();
@@ -7916,9 +7916,9 @@ var require_compose_scalar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js
 var require_util_empty_scalar_position = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/util-empty-scalar-position.js"(exports2) {
     "use strict";
     function emptyScalarPosition(offset, before, pos) {
       if (before) {
@@ -7946,9 +7946,9 @@ var require_util_empty_scalar_position = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js
 var require_compose_node = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-node.js"(exports2) {
     "use strict";
     var Alias = require_Alias();
     var identity3 = require_identity();
@@ -8052,9 +8052,9 @@ var require_compose_node = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js
 var require_compose_doc = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/compose-doc.js"(exports2) {
     "use strict";
     var Document = require_Document();
     var composeNode = require_compose_node();
@@ -8095,9 +8095,9 @@ var require_compose_doc = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js
 var require_composer = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/compose/composer.js"(exports2) {
     "use strict";
     var node_process = require("process");
     var directives = require_directives();
@@ -8303,9 +8303,9 @@ ${end.comment}` : end.comment;
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js
 var require_cst_scalar = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-scalar.js"(exports2) {
     "use strict";
     var resolveBlockScalar = require_resolve_block_scalar();
     var resolveFlowScalar = require_resolve_flow_scalar();
@@ -8488,9 +8488,9 @@ var require_cst_scalar = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js
 var require_cst_stringify = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-stringify.js"(exports2) {
     "use strict";
     var stringify = (cst) => "type" in cst ? stringifyToken(cst) : stringifyItem(cst);
     function stringifyToken(token) {
@@ -8549,9 +8549,9 @@ var require_cst_stringify = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js
 var require_cst_visit = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst-visit.js"(exports2) {
     "use strict";
     var BREAK = /* @__PURE__ */ Symbol("break visit");
     var SKIP = /* @__PURE__ */ Symbol("skip children");
@@ -8611,9 +8611,9 @@ var require_cst_visit = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js
 var require_cst = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/cst.js"(exports2) {
     "use strict";
     var cstScalar = require_cst_scalar();
     var cstStringify = require_cst_stringify();
@@ -8713,9 +8713,9 @@ var require_cst = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js
 var require_lexer = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/lexer.js"(exports2) {
     "use strict";
     var cst = require_cst();
     function isEmpty(ch) {
@@ -9302,9 +9302,9 @@ var require_lexer = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js
 var require_line_counter = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/line-counter.js"(exports2) {
     "use strict";
     var LineCounter = class {
       constructor() {
@@ -9333,9 +9333,9 @@ var require_line_counter = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js
 var require_parser = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/parse/parser.js"(exports2) {
     "use strict";
     var node_process = require("process");
     var cst = require_cst();
@@ -10207,9 +10207,9 @@ var require_parser = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js
 var require_public_api = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/public-api.js"(exports2) {
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
@@ -10304,9 +10304,9 @@ var require_public_api = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js
+// ../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js
 var require_dist = __commonJS({
-  "../../node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/yaml@2.9.0/node_modules/yaml/dist/index.js"(exports2) {
     "use strict";
     var composer = require_composer();
     var Document = require_Document();
@@ -10356,9 +10356,9 @@ var require_dist = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
+// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js
 var require_windows = __commonJS({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/windows.js"(exports2, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -10397,9 +10397,9 @@ var require_windows = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
+// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js
 var require_mode = __commonJS({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/mode.js"(exports2, module2) {
     "use strict";
     module2.exports = isexe;
     isexe.sync = sync;
@@ -10431,9 +10431,9 @@ var require_mode = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
+// ../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js
 var require_isexe = __commonJS({
-  "../../node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/isexe@2.0.0/node_modules/isexe/index.js"(exports2, module2) {
     "use strict";
     var fs = require("fs");
     var core;
@@ -10487,9 +10487,9 @@ var require_isexe = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
+// ../../../../../specbridge/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js
 var require_which = __commonJS({
-  "../../node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/which@2.0.2/node_modules/which/which.js"(exports2, module2) {
     "use strict";
     var isWindows = process.platform === "win32" || process.env.OSTYPE === "cygwin" || process.env.OSTYPE === "msys";
     var path97 = require("path");
@@ -10584,9 +10584,9 @@ var require_which = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
+// ../../../../../specbridge/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js
 var require_path_key = __commonJS({
-  "../../node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/path-key@3.1.1/node_modules/path-key/index.js"(exports2, module2) {
     "use strict";
     var pathKey2 = (options = {}) => {
       const environment = options.env || process.env;
@@ -10601,9 +10601,9 @@ var require_path_key = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js
 var require_resolveCommand = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/resolveCommand.js"(exports2, module2) {
     "use strict";
     var path97 = require("path");
     var which = require_which();
@@ -10643,9 +10643,9 @@ var require_resolveCommand = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js
 var require_escape = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/escape.js"(exports2, module2) {
     "use strict";
     var metaCharsRegExp = /([()\][%!^"`<>&|;, *?])/g;
     function escapeCommand(arg) {
@@ -10668,17 +10668,17 @@ var require_escape = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
+// ../../../../../specbridge/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js
 var require_shebang_regex = __commonJS({
-  "../../node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/shebang-regex@3.0.0/node_modules/shebang-regex/index.js"(exports2, module2) {
     "use strict";
     module2.exports = /^#!(.*)/;
   }
 });
 
-// ../../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
+// ../../../../../specbridge/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js
 var require_shebang_command = __commonJS({
-  "../../node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/shebang-command@2.0.0/node_modules/shebang-command/index.js"(exports2, module2) {
     "use strict";
     var shebangRegex = require_shebang_regex();
     module2.exports = (string3 = "") => {
@@ -10696,9 +10696,9 @@ var require_shebang_command = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js
 var require_readShebang = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/util/readShebang.js"(exports2, module2) {
     "use strict";
     var fs = require("fs");
     var shebangCommand = require_shebang_command();
@@ -10718,9 +10718,9 @@ var require_readShebang = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js
 var require_parse = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/parse.js"(exports2, module2) {
     "use strict";
     var path97 = require("path");
     var resolveCommand = require_resolveCommand();
@@ -10780,9 +10780,9 @@ var require_parse = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js
 var require_enoent = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/lib/enoent.js"(exports2, module2) {
     "use strict";
     var isWin = process.platform === "win32";
     function notFoundError(original, syscall) {
@@ -10830,9 +10830,9 @@ var require_enoent = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
+// ../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js
 var require_cross_spawn = __commonJS({
-  "../../node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/cross-spawn@7.0.6/node_modules/cross-spawn/index.js"(exports2, module2) {
     "use strict";
     var cp = require("child_process");
     var parse3 = require_parse();
@@ -10857,9 +10857,9 @@ var require_cross_spawn = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js
+// ../../../../../specbridge/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js
 var require_picocolors = __commonJS({
-  "../../node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picocolors@1.1.1/node_modules/picocolors/picocolors.js"(exports2, module2) {
     "use strict";
     var p = process || {};
     var argv2 = p.argv || [];
@@ -10930,9 +10930,9 @@ var require_picocolors = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js
 var require_constants = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/constants.js"(exports2, module2) {
     "use strict";
     var WIN_SLASH = "\\\\/";
     var WIN_NO_SLASH = `[^${WIN_SLASH}]`;
@@ -11132,9 +11132,9 @@ var require_constants = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js
 var require_utils = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/utils.js"(exports2) {
     "use strict";
     var {
       REGEX_BACKSLASH,
@@ -11196,9 +11196,9 @@ var require_utils = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js
 var require_scan = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/scan.js"(exports2, module2) {
     "use strict";
     var utils = require_utils();
     var {
@@ -11526,9 +11526,9 @@ var require_scan = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js
 var require_parse2 = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/parse.js"(exports2, module2) {
     "use strict";
     var constants5 = require_constants();
     var utils = require_utils();
@@ -12540,9 +12540,9 @@ var require_parse2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js
 var require_picomatch = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/lib/picomatch.js"(exports2, module2) {
     "use strict";
     var scan = require_scan();
     var parse3 = require_parse2();
@@ -12680,9 +12680,9 @@ var require_picomatch = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js
+// ../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js
 var require_picomatch2 = __commonJS({
-  "../../node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/picomatch@4.0.5/node_modules/picomatch/index.js"(exports2, module2) {
     "use strict";
     var pico = require_picomatch();
     var utils = require_utils();
@@ -12697,9 +12697,9 @@ var require_picomatch2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js
 var require_code = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/code.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.regexpCode = exports2.getEsmExportName = exports2.getProperty = exports2.safeStringify = exports2.stringify = exports2.strConcat = exports2.addCodeArg = exports2.str = exports2._ = exports2.nil = exports2._Code = exports2.Name = exports2.IDENTIFIER = exports2._CodeOrName = void 0;
@@ -12851,9 +12851,9 @@ var require_code = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js
 var require_scope = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/scope.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.ValueScope = exports2.ValueScopeName = exports2.Scope = exports2.varKinds = exports2.UsedValueState = void 0;
@@ -12996,9 +12996,9 @@ var require_scope = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js
 var require_codegen = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/codegen/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.or = exports2.and = exports2.not = exports2.CodeGen = exports2.operators = exports2.varKinds = exports2.ValueScopeName = exports2.ValueScope = exports2.Scope = exports2.Name = exports2.regexpCode = exports2.stringify = exports2.getProperty = exports2.nil = exports2.strConcat = exports2.str = exports2._ = void 0;
@@ -13716,9 +13716,9 @@ var require_codegen = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js
 var require_util = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/util.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.checkStrictMode = exports2.getErrorPath = exports2.Type = exports2.useFunc = exports2.setEvaluated = exports2.evaluatedPropsToName = exports2.mergeEvaluated = exports2.eachItem = exports2.unescapeJsonPointer = exports2.escapeJsonPointer = exports2.escapeFragment = exports2.unescapeFragment = exports2.schemaRefOrVal = exports2.schemaHasRulesButRef = exports2.schemaHasRules = exports2.checkUnknownRules = exports2.alwaysValidSchema = exports2.toHash = void 0;
@@ -13883,9 +13883,9 @@ var require_util = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js
 var require_names = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/names.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -13922,9 +13922,9 @@ var require_names = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js
 var require_errors2 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/errors.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.extendErrors = exports2.resetErrorsCount = exports2.reportExtraError = exports2.reportError = exports2.keyword$DataError = exports2.keywordError = void 0;
@@ -14044,9 +14044,9 @@ var require_errors2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js
 var require_boolSchema = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/boolSchema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.boolOrEmptySchema = exports2.topBoolOrEmptySchema = void 0;
@@ -14095,9 +14095,9 @@ var require_boolSchema = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js
 var require_rules = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/rules.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getRules = exports2.isJSONType = void 0;
@@ -14126,9 +14126,9 @@ var require_rules = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js
 var require_applicability = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/applicability.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.shouldUseRule = exports2.shouldUseGroup = exports2.schemaHasRulesForType = void 0;
@@ -14149,9 +14149,9 @@ var require_applicability = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js
 var require_dataType = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/dataType.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.reportTypeError = exports2.checkDataTypes = exports2.checkDataType = exports2.coerceAndCheckDataType = exports2.getJSONTypes = exports2.getSchemaTypes = exports2.DataType = void 0;
@@ -14333,9 +14333,9 @@ var require_dataType = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js
 var require_defaults = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/defaults.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.assignDefaults = void 0;
@@ -14370,9 +14370,9 @@ var require_defaults = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js
 var require_code2 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/code.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateUnion = exports2.validateArray = exports2.usePattern = exports2.callValidateCode = exports2.schemaProperties = exports2.allSchemaProperties = exports2.noPropertyInData = exports2.propertyInData = exports2.isOwnProperty = exports2.hasPropFunc = exports2.reportMissingProp = exports2.checkMissingProp = exports2.checkReportMissingProp = void 0;
@@ -14503,9 +14503,9 @@ var require_code2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js
 var require_keyword = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/keyword.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateKeywordUsage = exports2.validSchemaType = exports2.funcKeywordCode = exports2.macroKeywordCode = void 0;
@@ -14621,9 +14621,9 @@ var require_keyword = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js
 var require_subschema = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/subschema.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.extendSubschemaMode = exports2.extendSubschemaData = exports2.getSubschema = void 0;
@@ -14704,9 +14704,9 @@ var require_subschema = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
+// ../../../../../specbridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js
 var require_fast_deep_equal = __commonJS({
-  "../../node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/fast-deep-equal@3.1.3/node_modules/fast-deep-equal/index.js"(exports2, module2) {
     "use strict";
     module2.exports = function equal(a2, b) {
       if (a2 === b) return true;
@@ -14739,9 +14739,9 @@ var require_fast_deep_equal = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
+// ../../../../../specbridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js
 var require_json_schema_traverse = __commonJS({
-  "../../node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/json-schema-traverse@1.0.0/node_modules/json-schema-traverse/index.js"(exports2, module2) {
     "use strict";
     var traverse = module2.exports = function(schema, opts, cb) {
       if (typeof opts == "function") {
@@ -14827,9 +14827,9 @@ var require_json_schema_traverse = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js
 var require_resolve = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/resolve.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getSchemaRefs = exports2.resolveUrl = exports2.normalizeId = exports2._getFullPath = exports2.getFullPath = exports2.inlineRef = void 0;
@@ -14983,9 +14983,9 @@ var require_resolve = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js
 var require_validate = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/validate/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.getData = exports2.KeywordCxt = exports2.validateFunctionCode = void 0;
@@ -15491,9 +15491,9 @@ var require_validate = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js
 var require_validation_error = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/validation_error.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var ValidationError = class extends Error {
@@ -15507,9 +15507,9 @@ var require_validation_error = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js
 var require_ref_error = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/ref_error.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var resolve_1 = require_resolve();
@@ -15524,9 +15524,9 @@ var require_ref_error = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js
 var require_compile = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/compile/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.resolveSchema = exports2.getCompilingSchema = exports2.resolveRef = exports2.compileSchema = exports2.SchemaEnv = void 0;
@@ -15748,9 +15748,9 @@ var require_compile = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json
 var require_data = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/data.json"(exports2, module2) {
     module2.exports = {
       $id: "https://raw.githubusercontent.com/ajv-validator/ajv/master/lib/refs/data.json#",
       description: "Meta-schema for $data reference (JSON AnySchema extension proposal)",
@@ -15767,9 +15767,9 @@ var require_data = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
+// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js
 var require_utils2 = __commonJS({
-  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/utils.js"(exports2, module2) {
     "use strict";
     var isUUID = RegExp.prototype.test.bind(/^[\da-f]{8}-[\da-f]{4}-[\da-f]{4}-[\da-f]{4}-[\da-f]{12}$/iu);
     var isIPv4 = RegExp.prototype.test.bind(/^(?:(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)\.){3}(?:25[0-5]|2[0-4]\d|1\d{2}|[1-9]\d|\d)$/u);
@@ -16080,9 +16080,9 @@ var require_utils2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
+// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js
 var require_schemes = __commonJS({
-  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/lib/schemes.js"(exports2, module2) {
     "use strict";
     var { isUUID } = require_utils2();
     var URN_REG = /([\da-z][\d\-a-z]{0,31}):((?:[\w!$'()*+,\-.:;=@]|%[\da-f]{2})+)/iu;
@@ -16290,9 +16290,9 @@ var require_schemes = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
+// ../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js
 var require_fast_uri = __commonJS({
-  "../../node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/fast-uri@3.1.3/node_modules/fast-uri/index.js"(exports2, module2) {
     "use strict";
     var { normalizeIPv6, removeDotSegments, recomposeAuthority, normalizePercentEncoding, normalizePathEncoding, escapePreservingEscapes, reescapeHostDelimiters, isIPv4, nonSimpleDomain } = require_utils2();
     var { SCHEMES, getSchemeHandler } = require_schemes();
@@ -16576,9 +16576,9 @@ var require_fast_uri = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js
 var require_uri = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/uri.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var uri = require_fast_uri();
@@ -16587,9 +16587,9 @@ var require_uri = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js
 var require_core = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/core.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = void 0;
@@ -17198,9 +17198,9 @@ var require_core = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js
 var require_id = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/id.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var def = {
@@ -17213,9 +17213,9 @@ var require_id = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js
 var require_ref = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/ref.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.callRef = exports2.getValidate = void 0;
@@ -17335,9 +17335,9 @@ var require_ref = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js
 var require_core2 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/core/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var id_1 = require_id();
@@ -17356,9 +17356,9 @@ var require_core2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js
 var require_limitNumber = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitNumber.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17388,9 +17388,9 @@ var require_limitNumber = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js
 var require_multipleOf = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/multipleOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17416,9 +17416,9 @@ var require_multipleOf = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js
 var require_ucs2length = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/ucs2length.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     function ucs2length(str) {
@@ -17442,9 +17442,9 @@ var require_ucs2length = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js
 var require_limitLength = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitLength.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17474,9 +17474,9 @@ var require_limitLength = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js
 var require_pattern = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/pattern.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -17511,9 +17511,9 @@ var require_pattern = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js
 var require_limitProperties = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17540,9 +17540,9 @@ var require_limitProperties = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js
 var require_required = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/required.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -17622,9 +17622,9 @@ var require_required = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js
 var require_limitItems = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/limitItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17651,9 +17651,9 @@ var require_limitItems = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js
 var require_equal = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/runtime/equal.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var equal = require_fast_deep_equal();
@@ -17662,9 +17662,9 @@ var require_equal = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js
 var require_uniqueItems = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/uniqueItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var dataType_1 = require_dataType();
@@ -17729,9 +17729,9 @@ var require_uniqueItems = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js
 var require_const = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/const.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17758,9 +17758,9 @@ var require_const = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js
 var require_enum = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/enum.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -17807,9 +17807,9 @@ var require_enum = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js
 var require_validation = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/validation/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var limitNumber_1 = require_limitNumber();
@@ -17845,9 +17845,9 @@ var require_validation = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js
 var require_additionalItems = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateAdditionalItems = void 0;
@@ -17898,9 +17898,9 @@ var require_additionalItems = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js
 var require_items = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateTuple = void 0;
@@ -17955,9 +17955,9 @@ var require_items = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js
 var require_prefixItems = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/prefixItems.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var items_1 = require_items();
@@ -17972,9 +17972,9 @@ var require_prefixItems = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js
 var require_items2020 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/items2020.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18007,9 +18007,9 @@ var require_items2020 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js
 var require_contains = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/contains.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18101,9 +18101,9 @@ var require_contains = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js
 var require_dependencies = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/dependencies.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.validateSchemaDeps = exports2.validatePropertyDeps = exports2.error = void 0;
@@ -18195,9 +18195,9 @@ var require_dependencies = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js
 var require_propertyNames = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/propertyNames.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18238,9 +18238,9 @@ var require_propertyNames = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js
 var require_additionalProperties = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/additionalProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -18344,9 +18344,9 @@ var require_additionalProperties = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js
 var require_properties = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/properties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var validate_1 = require_validate();
@@ -18402,9 +18402,9 @@ var require_properties = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js
 var require_patternProperties = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/patternProperties.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -18476,9 +18476,9 @@ var require_patternProperties = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js
 var require_not = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/not.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -18507,9 +18507,9 @@ var require_not = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js
 var require_anyOf = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/anyOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var code_1 = require_code2();
@@ -18524,9 +18524,9 @@ var require_anyOf = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js
 var require_oneOf = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/oneOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18582,9 +18582,9 @@ var require_oneOf = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js
 var require_allOf = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/allOf.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -18609,9 +18609,9 @@ var require_allOf = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js
 var require_if = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/if.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18678,9 +18678,9 @@ var require_if = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js
 var require_thenElse = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/thenElse.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var util_1 = require_util();
@@ -18696,9 +18696,9 @@ var require_thenElse = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js
 var require_applicator = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/applicator/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var additionalItems_1 = require_additionalItems();
@@ -18744,9 +18744,9 @@ var require_applicator = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js
 var require_format = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/format.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -18834,9 +18834,9 @@ var require_format = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js
 var require_format2 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/format/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var format_1 = require_format();
@@ -18845,9 +18845,9 @@ var require_format2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js
 var require_metadata = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/metadata.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.contentVocabulary = exports2.metadataVocabulary = void 0;
@@ -18868,9 +18868,9 @@ var require_metadata = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js
 var require_draft7 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/draft7.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var core_1 = require_core2();
@@ -18890,9 +18890,9 @@ var require_draft7 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js
 var require_types = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/types.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.DiscrError = void 0;
@@ -18904,9 +18904,9 @@ var require_types = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js
 var require_discriminator = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/vocabularies/discriminator/index.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var codegen_1 = require_codegen();
@@ -19009,9 +19009,9 @@ var require_discriminator = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json
 var require_json_schema_draft_07 = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/refs/json-schema-draft-07.json"(exports2, module2) {
     module2.exports = {
       $schema: "http://json-schema.org/draft-07/schema#",
       $id: "http://json-schema.org/draft-07/schema#",
@@ -19166,9 +19166,9 @@ var require_json_schema_draft_07 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js
 var require_ajv = __commonJS({
-  "../../node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv@8.20.0/node_modules/ajv/dist/ajv.js"(exports2, module2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.MissingRefError = exports2.ValidationError = exports2.CodeGen = exports2.Name = exports2.nil = exports2.stringify = exports2.str = exports2._ = exports2.KeywordCxt = exports2.Ajv = void 0;
@@ -19236,9 +19236,9 @@ var require_ajv = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js
 var require_formats = __commonJS({
-  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/formats.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.formatNames = exports2.fastFormats = exports2.fullFormats = void 0;
@@ -19439,9 +19439,9 @@ var require_formats = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js
 var require_limit = __commonJS({
-  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/limit.js"(exports2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     exports2.formatLimitDefinition = void 0;
@@ -19511,9 +19511,9 @@ var require_limit = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
+// ../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js
 var require_dist2 = __commonJS({
-  "../../node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports2, module2) {
+  "../../../../../specbridge/node_modules/.pnpm/ajv-formats@3.0.1_ajv@8.20.0/node_modules/ajv-formats/dist/index.js"(exports2, module2) {
     "use strict";
     Object.defineProperty(exports2, "__esModule", { value: true });
     var formats_1 = require_formats();
@@ -19553,7 +19553,7 @@ var require_dist2 = __commonJS({
   }
 });
 
-// ../../node_modules/.pnpm/commander@12.1.0/node_modules/commander/esm.mjs
+// ../../../../../specbridge/node_modules/.pnpm/commander@12.1.0/node_modules/commander/esm.mjs
 var import_index = __toESM(require_commander(), 1);
 var {
   program,
@@ -19578,7 +19578,7 @@ var import_fs2 = require("fs");
 var import_fs3 = require("fs");
 var import_path2 = __toESM(require("path"), 1);
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/external.js
 var external_exports = {};
 __export(external_exports, {
   BRAND: () => BRAND,
@@ -19690,7 +19690,7 @@ __export(external_exports, {
   void: () => voidType
 });
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/util.js
 var util;
 (function(util2) {
   util2.assertEqual = (_) => {
@@ -19824,7 +19824,7 @@ var getParsedType = (data) => {
   }
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/ZodError.js
 var ZodIssueCode = util.arrayToEnum([
   "invalid_type",
   "invalid_literal",
@@ -19942,7 +19942,7 @@ ZodError.create = (issues) => {
   return error2;
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/locales/en.js
 var errorMap = (issue4, _ctx) => {
   let message2;
   switch (issue4.code) {
@@ -20045,7 +20045,7 @@ var errorMap = (issue4, _ctx) => {
 };
 var en_default = errorMap;
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/errors.js
 var overrideErrorMap = en_default;
 function setErrorMap(map) {
   overrideErrorMap = map;
@@ -20054,7 +20054,7 @@ function getErrorMap() {
   return overrideErrorMap;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/parseUtil.js
 var makeIssue = (params) => {
   const { data, path: path97, errorMaps, issueData } = params;
   const fullPath = [...path97, ...issueData.path || []];
@@ -20164,14 +20164,14 @@ var isDirty = (x) => x.status === "dirty";
 var isValid = (x) => x.status === "valid";
 var isAsync = (x) => typeof Promise !== "undefined" && x instanceof Promise;
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/helpers/errorUtil.js
 var errorUtil;
 (function(errorUtil2) {
   errorUtil2.errToObj = (message2) => typeof message2 === "string" ? { message: message2 } : message2 || {};
   errorUtil2.toString = (message2) => typeof message2 === "string" ? message2 : message2?.message;
 })(errorUtil || (errorUtil = {}));
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v3/types.js
 var ParseInputLazyPath = class {
   constructor(parent, value, path97, key) {
     this._cachedPath = [];
@@ -30384,7 +30384,7 @@ var import_buffer = require("buffer");
 var import_fs14 = require("fs");
 var import_path14 = __toESM(require("path"), 1);
 
-// ../../node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
+// ../../../../../specbridge/node_modules/.pnpm/is-plain-obj@4.1.0/node_modules/is-plain-obj/index.js
 function isPlainObject(value) {
   if (typeof value !== "object" || value === null) {
     return false;
@@ -30393,7 +30393,7 @@ function isPlainObject(value) {
   return (prototype === null || prototype === Object.prototype || Object.getPrototypeOf(prototype) === null) && !(Symbol.toStringTag in value) && !(Symbol.iterator in value);
 }
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/file-url.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/file-url.js
 var import_node_url = require("url");
 var safeNormalizeFileUrl = (file, name) => {
   const fileString = normalizeFileUrl(normalizeDenoExecPath(file));
@@ -30406,7 +30406,7 @@ var normalizeDenoExecPath = (file) => isDenoExecPath(file) ? file.toString() : f
 var isDenoExecPath = (file) => typeof file !== "string" && file && Object.getPrototypeOf(file) === String.prototype;
 var normalizeFileUrl = (file) => file instanceof URL ? (0, import_node_url.fileURLToPath)(file) : file;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/parameters.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/parameters.js
 var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   const filePath = safeNormalizeFileUrl(rawFile, "First argument");
   const [commandArguments, options] = isPlainObject(rawArguments) ? [[], rawArguments] : [rawArguments, rawOptions];
@@ -30427,10 +30427,10 @@ var normalizeParameters = (rawFile, rawArguments = [], rawOptions = {}) => {
   return [filePath, normalizedArguments, options];
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
 var import_node_child_process = require("child_process");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/uint-array.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/uint-array.js
 var import_node_string_decoder = require("string_decoder");
 var { toString: objectToString } = Object.prototype;
 var isArrayBuffer = (value) => objectToString.call(value) === "[object ArrayBuffer]";
@@ -30477,7 +30477,7 @@ var getJoinLength = (uint8Arrays) => {
   return joinLength;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/template.js
 var isTemplateString = (templates) => Array.isArray(templates) && Array.isArray(templates.raw);
 var parseTemplates = (templates, expressions) => {
   let tokens2 = [];
@@ -30577,20 +30577,20 @@ var getSubprocessResult = ({ stdout }) => {
   throw new TypeError(`Unexpected "${typeof stdout}" stdout in template expression`);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
 var import_node_child_process3 = require("child_process");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
 var import_node_util = require("util");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/standard-stream.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/standard-stream.js
 var import_node_process = __toESM(require("process"), 1);
 var isStandardStream = (stream) => STANDARD_STREAMS.includes(stream);
 var STANDARD_STREAMS = [import_node_process.default.stdin, import_node_process.default.stdout, import_node_process.default.stderr];
 var STANDARD_STREAMS_ALIASES = ["stdin", "stdout", "stderr"];
 var getStreamName = (fdNumber) => STANDARD_STREAMS_ALIASES[fdNumber] ?? `stdio[${fdNumber}]`;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/specific.js
 var normalizeFdSpecificOptions = (options) => {
   const optionsCopy = { ...options };
   for (const optionName of FD_SPECIFIC_OPTIONS) {
@@ -30660,7 +30660,7 @@ var DEFAULT_OPTIONS = {
 var FD_SPECIFIC_OPTIONS = ["lines", "buffer", "maxBuffer", "verbose", "stripFinalNewline"];
 var getFdSpecificValue = (optionArray, fdNumber) => fdNumber === "ipc" ? optionArray.at(-1) : optionArray[fdNumber];
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/values.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/values.js
 var isVerbose = ({ verbose }, fdNumber) => getFdVerbose(verbose, fdNumber) !== "none";
 var isFullVerbose = ({ verbose }, fdNumber) => !["none", "short"].includes(getFdVerbose(verbose, fdNumber));
 var getVerboseFunction = ({ verbose }, fdNumber) => {
@@ -30672,10 +30672,10 @@ var getFdGenericVerbose = (verbose) => verbose.find((fdVerbose) => isVerboseFunc
 var isVerboseFunction = (fdVerbose) => typeof fdVerbose === "function";
 var VERBOSE_VALUES = ["none", "short", "full"];
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
 var import_node_util3 = require("util");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/escape.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/escape.js
 var import_node_process2 = require("process");
 var import_node_util2 = require("util");
 var joinCommand = (filePath, rawArguments) => {
@@ -30720,7 +30720,7 @@ var quoteString = (escapedArgument) => {
 };
 var NO_ESCAPE_REGEXP = /^[\w./-]+$/;
 
-// ../../node_modules/.pnpm/is-unicode-supported@2.1.0/node_modules/is-unicode-supported/index.js
+// ../../../../../specbridge/node_modules/.pnpm/is-unicode-supported@2.1.0/node_modules/is-unicode-supported/index.js
 var import_node_process3 = __toESM(require("process"), 1);
 function isUnicodeSupported() {
   const { env } = import_node_process3.default;
@@ -30731,7 +30731,7 @@ function isUnicodeSupported() {
   return Boolean(env.WT_SESSION) || Boolean(env.TERMINUS_SUBLIME) || env.ConEmuTask === "{cmd::Cmder}" || TERM_PROGRAM === "Terminus-Sublime" || TERM_PROGRAM === "vscode" || TERM === "xterm-256color" || TERM === "alacritty" || TERM === "rxvt-unicode" || TERM === "rxvt-unicode-256color" || env.TERMINAL_EMULATOR === "JetBrains-JediTerm";
 }
 
-// ../../node_modules/.pnpm/figures@6.1.0/node_modules/figures/index.js
+// ../../../../../specbridge/node_modules/.pnpm/figures@6.1.0/node_modules/figures/index.js
 var common = {
   circleQuestionMark: "(?)",
   questionMarkPrefix: "(?)",
@@ -31007,7 +31007,7 @@ var figures = shouldUseMain ? mainSymbols : fallbackSymbols;
 var figures_default = figures;
 var replacements = Object.entries(specialMainSymbols);
 
-// ../../node_modules/.pnpm/yoctocolors@2.1.2/node_modules/yoctocolors/base.js
+// ../../../../../specbridge/node_modules/.pnpm/yoctocolors@2.1.2/node_modules/yoctocolors/base.js
 var import_node_tty = __toESM(require("tty"), 1);
 var hasColors = import_node_tty.default?.WriteStream?.prototype?.hasColors?.() ?? false;
 var format = (open, close) => {
@@ -31077,7 +31077,7 @@ var bgMagentaBright = format(105, 49);
 var bgCyanBright = format(106, 49);
 var bgWhiteBright = format(107, 49);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/default.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/default.js
 var defaultVerboseFunction = ({
   type,
   message: message2,
@@ -31116,7 +31116,7 @@ var COLORS = {
   duration: () => gray
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/custom.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/custom.js
 var applyVerboseOnLines = (printedLines, verboseInfo, fdNumber) => {
   const verboseFunction = getVerboseFunction(verboseInfo, fdNumber);
   return printedLines.map(({ verboseLine, verboseObject }) => applyVerboseFunction(verboseLine, verboseObject, verboseFunction)).filter((printedLine) => printedLine !== void 0).map((printedLine) => appendNewline(printedLine)).join("");
@@ -31133,7 +31133,7 @@ var applyVerboseFunction = (verboseLine, verboseObject, verboseFunction) => {
 var appendNewline = (printedLine) => printedLine.endsWith("\n") ? printedLine : `${printedLine}
 `;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/log.js
 var verboseLog = ({ type, verboseMessage, fdNumber, verboseInfo, result }) => {
   const verboseObject = getVerboseObject({ type, result, verboseInfo });
   const printedLines = getPrintedLines(verboseMessage, verboseObject);
@@ -31167,7 +31167,7 @@ var serializeVerboseMessage = (message2) => {
 };
 var TAB_SIZE = 2;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/start.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/start.js
 var logCommand = (escapedCommand, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -31179,7 +31179,7 @@ var logCommand = (escapedCommand, verboseInfo) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/info.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/info.js
 var getVerboseInfo = (verbose, escapedCommand, rawOptions) => {
   validateVerbose(verbose);
   const commandId = getCommandId(verbose);
@@ -31207,12 +31207,12 @@ var validateVerbose = (verbose) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/duration.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/duration.js
 var import_node_process4 = require("process");
 var getStartTime = () => import_node_process4.hrtime.bigint();
 var getDurationMs = (startTime) => Number(import_node_process4.hrtime.bigint() - startTime) / 1e6;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/command.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/command.js
 var handleCommand = (filePath, rawArguments, rawOptions) => {
   const startTime = getStartTime();
   const { command, escapedCommand } = joinCommand(filePath, rawArguments);
@@ -31227,16 +31227,16 @@ var handleCommand = (filePath, rawArguments, rawOptions) => {
   };
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
 var import_node_path5 = __toESM(require("path"), 1);
 var import_node_process8 = __toESM(require("process"), 1);
 var import_cross_spawn = __toESM(require_cross_spawn(), 1);
 
-// ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
+// ../../../../../specbridge/node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var import_node_process5 = __toESM(require("process"), 1);
 var import_node_path2 = __toESM(require("path"), 1);
 
-// ../../node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
+// ../../../../../specbridge/node_modules/.pnpm/path-key@4.0.0/node_modules/path-key/index.js
 function pathKey(options = {}) {
   const {
     env = process.env,
@@ -31248,7 +31248,7 @@ function pathKey(options = {}) {
   return Object.keys(env).reverse().find((key) => key.toUpperCase() === "PATH") || "Path";
 }
 
-// ../../node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
+// ../../../../../specbridge/node_modules/.pnpm/unicorn-magic@0.3.0/node_modules/unicorn-magic/node.js
 var import_node_util4 = require("util");
 var import_node_child_process2 = require("child_process");
 var import_node_path = __toESM(require("path"), 1);
@@ -31272,7 +31272,7 @@ function traversePathUp(startPath) {
 }
 var TEN_MEGABYTES_IN_BYTES = 10 * 1024 * 1024;
 
-// ../../node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
+// ../../../../../specbridge/node_modules/.pnpm/npm-run-path@6.0.0/node_modules/npm-run-path/index.js
 var npmRunPath = ({
   cwd = import_node_process5.default.cwd(),
   path: pathOption = import_node_process5.default.env[pathKey()],
@@ -31313,10 +31313,10 @@ var npmRunPathEnv = ({ env = import_node_process5.default.env, ...options } = {}
   return env;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
 var import_promises = require("timers/promises");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/final-error.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/final-error.js
 var getFinalError = (originalError, message2, isSync) => {
   const ErrorClass = isSync ? ExecaSyncError : ExecaError;
   const options = originalError instanceof DiscardedError ? {} : { cause: originalError };
@@ -31348,13 +31348,13 @@ var ExecaSyncError = class extends Error {
 };
 setErrorName(ExecaSyncError, ExecaSyncError.name);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
 var import_node_os3 = require("os");
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var import_node_os2 = require("os");
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/realtime.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/realtime.js
 var getRealtimeSignals = () => {
   const length = SIGRTMAX - SIGRTMIN + 1;
   return Array.from({ length }, getRealtimeSignal);
@@ -31369,10 +31369,10 @@ var getRealtimeSignal = (value, index) => ({
 var SIGRTMIN = 34;
 var SIGRTMAX = 64;
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var import_node_os = require("os");
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/core.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/core.js
 var SIGNALS = [
   {
     name: "SIGHUP",
@@ -31645,7 +31645,7 @@ var SIGNALS = [
   }
 ];
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/signals.js
 var getSignals = () => {
   const realtimeSignals = getRealtimeSignals();
   const signals2 = [...SIGNALS, ...realtimeSignals].map(normalizeSignal);
@@ -31667,7 +31667,7 @@ var normalizeSignal = ({
   return { name, number: number3, description, supported, action, forced, standard };
 };
 
-// ../../node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
+// ../../../../../specbridge/node_modules/.pnpm/human-signals@8.0.1/node_modules/human-signals/build/src/main.js
 var getSignalsByName = () => {
   const signals2 = getSignals();
   return Object.fromEntries(signals2.map(getSignalByName));
@@ -31718,7 +31718,7 @@ var findSignalByNumber = (number3, signals2) => {
 };
 var signalsByNumber = getSignalsByNumber();
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/signal.js
 var normalizeKillSignal = (killSignal) => {
   const optionName = "option `killSignal`";
   if (killSignal === 0) {
@@ -31762,7 +31762,7 @@ var getAvailableSignalNames = () => Object.keys(import_node_os3.constants.signal
 var getAvailableSignalIntegers = () => [...new Set(Object.values(import_node_os3.constants.signals).sort((signalInteger, signalIntegerTwo) => signalInteger - signalIntegerTwo))].join(", ");
 var getSignalDescription = (signal) => signalsByName[signal].description;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/kill.js
 var normalizeForceKillAfterDelay = (forceKillAfterDelay) => {
   if (forceKillAfterDelay === false) {
     return forceKillAfterDelay;
@@ -31829,7 +31829,7 @@ var killOnTimeout = async ({ kill, forceKillAfterDelay, context, controllerSigna
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/abort-signal.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/abort-signal.js
 var import_node_events = require("events");
 var onAbortedSignal = async (mainSignal, stopSignal) => {
   if (!mainSignal.aborted) {
@@ -31837,7 +31837,7 @@ var onAbortedSignal = async (mainSignal, stopSignal) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cancel.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cancel.js
 var validateCancelSignal = ({ cancelSignal }) => {
   if (cancelSignal !== void 0 && Object.prototype.toString.call(cancelSignal) !== "[object AbortSignal]") {
     throw new Error(`The \`cancelSignal\` option must be an AbortSignal: ${String(cancelSignal)}`);
@@ -31851,13 +31851,13 @@ var terminateOnCancel = async (subprocess, cancelSignal, context, { signal }) =>
   throw cancelSignal.reason;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
 var import_promises3 = require("timers/promises");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
 var import_node_util5 = require("util");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/validation.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/validation.js
 var validateIpcMethod = ({ methodName, isSubprocess, ipc, isConnected: isConnected2 }) => {
   validateIpcOption(methodName, isSubprocess, ipc);
   validateConnection(methodName, isSubprocess, isConnected2);
@@ -31929,7 +31929,7 @@ var disconnect = (anyProcess) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/deferred.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/deferred.js
 var createDeferred = () => {
   const methods = {};
   const promise = new Promise((resolve2, reject) => {
@@ -31938,7 +31938,7 @@ var createDeferred = () => {
   return Object.assign(promise, methods);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/fd-options.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/fd-options.js
 var getToStream = (destination, to = "stdin") => {
   const isWritable = true;
   const { options, fileDescriptors } = SUBPROCESS_OPTIONS.get(destination);
@@ -32018,10 +32018,10 @@ var serializeOptionValue = (value) => {
   return typeof value === "number" ? `${value}` : "Stream";
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
 var import_node_events5 = require("events");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/max-listeners.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/utils/max-listeners.js
 var import_node_events2 = require("events");
 var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   const maxListeners = eventEmitter.getMaxListeners();
@@ -32034,14 +32034,14 @@ var incrementMaxListeners = (eventEmitter, maxListenersIncrement, signal) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
 var import_node_events4 = require("events");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
 var import_node_events3 = require("events");
 var import_promises2 = require("timers/promises");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/reference.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/reference.js
 var addReference = (channel, reference) => {
   if (reference) {
     addReferenceCount(channel);
@@ -32071,7 +32071,7 @@ var redoAddedReferences = (channel, isSubprocess) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/incoming.js
 var onMessage = async ({ anyProcess, channel, isSubprocess, ipcEmitter }, wrappedMessage) => {
   if (handleStrictResponse(wrappedMessage) || handleAbort(wrappedMessage)) {
     return;
@@ -32112,7 +32112,7 @@ var onDisconnect = async ({ anyProcess, channel, isSubprocess, ipcEmitter, bound
 };
 var INCOMING_MESSAGES = /* @__PURE__ */ new WeakMap();
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/forward.js
 var getIpcEmitter = (anyProcess, channel, isSubprocess) => {
   if (IPC_EMITTERS.has(anyProcess)) {
     return IPC_EMITTERS.get(anyProcess);
@@ -32151,7 +32151,7 @@ var isConnected = (anyProcess) => {
   return ipcEmitter === void 0 ? anyProcess.channel !== null : ipcEmitter.connected;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/strict.js
 var handleSendStrict = ({ anyProcess, channel, isSubprocess, message: message2, strict }) => {
   if (!strict) {
     return message2;
@@ -32234,7 +32234,7 @@ var throwOnDisconnect = async (anyProcess, isSubprocess, { signal }) => {
 var REQUEST_TYPE = "execa:ipc:request";
 var RESPONSE_TYPE = "execa:ipc:response";
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/outgoing.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/outgoing.js
 var startSendMessage = (anyProcess, wrappedMessage, strict) => {
   if (!OUTGOING_MESSAGES.has(anyProcess)) {
     OUTGOING_MESSAGES.set(anyProcess, /* @__PURE__ */ new Set());
@@ -32261,7 +32261,7 @@ var OUTGOING_MESSAGES = /* @__PURE__ */ new WeakMap();
 var hasMessageListeners = (anyProcess, ipcEmitter) => ipcEmitter.listenerCount("message") > getMinListenerCount(anyProcess);
 var getMinListenerCount = (anyProcess) => SUBPROCESS_OPTIONS.has(anyProcess) && !getFdSpecificValue(SUBPROCESS_OPTIONS.get(anyProcess).options.buffer, "ipc") ? 1 : 0;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/send.js
 var sendMessage = ({ anyProcess, channel, isSubprocess, ipc }, message2, { strict = false } = {}) => {
   const methodName = "sendMessage";
   validateIpcMethod({
@@ -32331,7 +32331,7 @@ var getSendMethod = (anyProcess) => {
 };
 var PROCESS_SEND_METHODS = /* @__PURE__ */ new WeakMap();
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/graceful.js
 var sendAbort = (subprocess, message2) => {
   const methodName = "cancelSignal";
   validateConnection(methodName, false, subprocess.connected);
@@ -32382,7 +32382,7 @@ var abortOnDisconnect = () => {
 };
 var cancelController = new AbortController();
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/graceful.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/graceful.js
 var validateGracefulCancel = ({ gracefulCancel, cancelSignal, ipc, serialization }) => {
   if (!gracefulCancel) {
     return;
@@ -32438,7 +32438,7 @@ var getReason = ({ reason: reason3 }) => {
   return error2;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/timeout.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/timeout.js
 var import_promises4 = require("timers/promises");
 var validateTimeout = ({ timeout }) => {
   if (timeout !== void 0 && (!Number.isFinite(timeout) || timeout < 0)) {
@@ -32453,7 +32453,7 @@ var killAfterTimeout = async (subprocess, timeout, context, { signal }) => {
   throw new DiscardedError();
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/node.js
 var import_node_process6 = require("process");
 var import_node_path3 = __toESM(require("path"), 1);
 var mapNode = ({ options }) => {
@@ -32494,7 +32494,7 @@ var handleNodeOption = (file, commandArguments, {
   ];
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/ipc-input.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/ipc-input.js
 var import_node_v8 = require("v8");
 var validateIpcInputOption = ({ ipcInput, ipc, serialization }) => {
   if (ipcInput === void 0) {
@@ -32530,7 +32530,7 @@ var sendIpcInput = async (subprocess, ipcInput) => {
   await subprocess.sendMessage(ipcInput);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/encoding-option.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/encoding-option.js
 var validateEncoding = ({ encoding }) => {
   if (ENCODINGS.has(encoding)) {
     return;
@@ -32572,7 +32572,7 @@ var ENCODING_ALIASES = {
 };
 var serializeEncoding = (encoding) => typeof encoding === "string" ? `"${encoding}"` : String(encoding);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/cwd.js
 var import_node_fs = require("fs");
 var import_node_path4 = __toESM(require("path"), 1);
 var import_node_process7 = __toESM(require("process"), 1);
@@ -32608,7 +32608,7 @@ ${originalMessage}`;
   return originalMessage;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/options.js
 var normalizeOptions = (filePath, rawArguments, rawOptions) => {
   rawOptions.cwd = normalizeCwd(rawOptions.cwd);
   const [processedFile, processedArguments, processedOptions] = handleNodeOption(filePath, rawArguments, rawOptions);
@@ -32679,13 +32679,13 @@ var getEnv = ({ env: envOption, extendEnv, preferLocal, node, localDirectory, no
   return env;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/shell.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/arguments/shell.js
 var concatenateShell = (file, commandArguments, options) => options.shell && commandArguments.length > 0 ? [[file, ...commandArguments].join(" "), [], options] : [file, commandArguments, options];
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
 var import_node_util6 = require("util");
 
-// ../../node_modules/.pnpm/strip-final-newline@4.0.0/node_modules/strip-final-newline/index.js
+// ../../../../../specbridge/node_modules/.pnpm/strip-final-newline@4.0.0/node_modules/strip-final-newline/index.js
 function stripFinalNewline(input) {
   if (typeof input === "string") {
     return stripFinalNewlineString(input);
@@ -32702,11 +32702,11 @@ var LF_BINARY = LF.codePointAt(0);
 var CR = "\r";
 var CR_BINARY = CR.codePointAt(0);
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
 var import_node_events6 = require("events");
 var import_promises5 = require("stream/promises");
 
-// ../../node_modules/.pnpm/is-stream@4.0.1/node_modules/is-stream/index.js
+// ../../../../../specbridge/node_modules/.pnpm/is-stream@4.0.1/node_modules/is-stream/index.js
 function isStream(stream, { checkOpen = true } = {}) {
   return stream !== null && typeof stream === "object" && (stream.writable || stream.readable || !checkOpen || stream.writable === void 0 && stream.readable === void 0) && typeof stream.pipe === "function";
 }
@@ -32720,7 +32720,7 @@ function isDuplexStream(stream, options) {
   return isWritableStream(stream, options) && isReadableStream(stream, options);
 }
 
-// ../../node_modules/.pnpm/@sec-ant+readable-stream@0.4.1/node_modules/@sec-ant/readable-stream/dist/ponyfill/asyncIterator.js
+// ../../../../../specbridge/node_modules/.pnpm/@sec-ant+readable-stream@0.4.1/node_modules/@sec-ant/readable-stream/dist/ponyfill/asyncIterator.js
 var a = Object.getPrototypeOf(
   Object.getPrototypeOf(
     /* istanbul ignore next */
@@ -32808,7 +32808,7 @@ function h({ preventCancel: r = false } = {}) {
   return s[n] = t, s;
 }
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/stream.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/stream.js
 var getAsyncIterable = (stream) => {
   if (isReadableStream(stream, { checkOpen: false }) && nodeImports.on !== void 0) {
     return getStreamIterable(stream);
@@ -32856,7 +32856,7 @@ var handleStreamEnd = async (stream, controller, state) => {
 };
 var nodeImports = {};
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/contents.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/contents.js
 var getStreamContents = async (stream, { init, convertChunk, getSize, truncateChunk, addChunk, getFinalChunk, finalize: finalize2 }, { maxBuffer = Number.POSITIVE_INFINITY } = {}) => {
   const asyncIterable = getAsyncIterable(stream);
   const state = init();
@@ -32951,7 +32951,7 @@ var MaxBufferError = class extends Error {
   }
 };
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/utils.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/utils.js
 var identity2 = (value) => value;
 var noop = () => void 0;
 var getContentsProperty = ({ contents }) => contents;
@@ -32960,7 +32960,7 @@ var throwObjectStream = (chunk) => {
 };
 var getLengthProperty = (convertedChunk) => convertedChunk.length;
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array.js
 async function getStreamAsArray(stream, options) {
   return getStreamContents(stream, arrayMethods, options);
 }
@@ -32987,7 +32987,7 @@ var arrayMethods = {
   finalize: getContentsProperty
 };
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array-buffer.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/array-buffer.js
 async function getStreamAsArrayBuffer(stream, options) {
   return getStreamContents(stream, arrayBufferMethods, options);
 }
@@ -33040,7 +33040,7 @@ var arrayBufferMethods = {
   finalize: finalizeArrayBuffer
 };
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/string.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/string.js
 async function getStreamAsString(stream, options) {
   return getStreamContents(stream, stringMethods, options);
 }
@@ -33069,10 +33069,10 @@ var stringMethods = {
   finalize: getContentsProperty
 };
 
-// ../../node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
+// ../../../../../specbridge/node_modules/.pnpm/get-stream@9.0.1/node_modules/get-stream/source/index.js
 Object.assign(nodeImports, { on: import_node_events6.on, finished: import_promises5.finished });
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/max-buffer.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/max-buffer.js
 var handleMaxBuffer = ({ error: error2, stream, readableObjectMode, lines, encoding, fdNumber }) => {
   if (!(error2 instanceof MaxBufferError)) {
     throw error2;
@@ -33131,7 +33131,7 @@ var truncateMaxBufferSync = (result, isMaxBuffer, maxBuffer) => {
 };
 var getMaxBufferSync = ([, stdoutMaxBuffer]) => stdoutMaxBuffer;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/message.js
 var createMessages = ({
   stdio,
   all,
@@ -33249,7 +33249,7 @@ var serializeMessageItem = (messageItem) => {
   return "";
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/result.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/result.js
 var makeSuccessResult = ({
   command,
   escapedCommand,
@@ -33422,7 +33422,7 @@ var normalizeExitPayload = (rawExitCode, rawSignal) => {
   return { exitCode, signal, signalDescription };
 };
 
-// ../../node_modules/.pnpm/parse-ms@4.0.0/node_modules/parse-ms/index.js
+// ../../../../../specbridge/node_modules/.pnpm/parse-ms@4.0.0/node_modules/parse-ms/index.js
 var toZeroIfInfinity = (value) => Number.isFinite(value) ? value : 0;
 function parseNumber(milliseconds) {
   return {
@@ -33461,7 +33461,7 @@ function parseMilliseconds(milliseconds) {
   throw new TypeError("Expected a finite number or bigint");
 }
 
-// ../../node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
+// ../../../../../specbridge/node_modules/.pnpm/pretty-ms@9.3.0/node_modules/pretty-ms/index.js
 var isZero = (value) => value === 0 || value === 0n;
 var pluralize = (word, count4) => count4 === 1 || count4 === 1n ? word : `${word}s`;
 var SECOND_ROUNDING_EPSILON = 1e-7;
@@ -33560,7 +33560,7 @@ function prettyMilliseconds(milliseconds, options) {
   return sign + result.join(separator);
 }
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/error.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/error.js
 var logError = (result, verboseInfo) => {
   if (result.failed) {
     verboseLog({
@@ -33572,7 +33572,7 @@ var logError = (result, verboseInfo) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/complete.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/complete.js
 var logResult = (result, verboseInfo) => {
   if (!isVerbose(verboseInfo)) {
     return;
@@ -33590,7 +33590,7 @@ var logDuration = (result, verboseInfo) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/reject.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/reject.js
 var handleResult2 = (result, verboseInfo, { reject }) => {
   logResult(result, verboseInfo);
   if (result.failed && reject) {
@@ -33599,10 +33599,10 @@ var handleResult2 = (result, verboseInfo, { reject }) => {
   return result;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
 var import_node_fs3 = require("fs");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/type.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/type.js
 var getStdioItemType = (value, optionName) => {
   if (isAsyncGenerator(value)) {
     return "asyncGenerator";
@@ -33728,7 +33728,7 @@ var TYPE_TO_MESSAGE = {
   uint8Array: "a Uint8Array"
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/object-mode.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/object-mode.js
 var getTransformObjectModes = (objectMode, index, newTransforms, direction) => direction === "output" ? getOutputObjectModes(objectMode, index, newTransforms) : getInputObjectModes(objectMode, index, newTransforms);
 var getOutputObjectModes = (objectMode, index, newTransforms) => {
   const writableObjectMode = index !== 0 && newTransforms[index - 1].value.readableObjectMode;
@@ -33748,7 +33748,7 @@ var getFdObjectMode = (stdioItems, direction) => {
   return direction === "input" ? lastTransform.value.writableObjectMode : lastTransform.value.readableObjectMode;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/normalize.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/normalize.js
 var normalizeTransforms = (stdioItems, optionName, direction, options) => [
   ...stdioItems.filter(({ type }) => !TRANSFORM_TYPES.has(type)),
   ...getTransforms(stdioItems, optionName, direction, options)
@@ -33842,7 +33842,7 @@ var normalizeGenerator = ({ stdioItem, stdioItem: { value }, index, newTransform
 };
 var sortTransforms = (newTransforms, direction) => direction === "input" ? newTransforms.reverse() : newTransforms;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/direction.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/direction.js
 var import_node_process9 = __toESM(require("process"), 1);
 var getStreamDirection = (stdioItems, fdNumber, optionName) => {
   const directions = stdioItems.map((stdioItem) => getStdioItemDirection(stdioItem, fdNumber));
@@ -33892,10 +33892,10 @@ var getStandardStreamDirection = (value) => {
 };
 var DEFAULT_DIRECTION = "output";
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/array.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/array.js
 var normalizeIpcStdioArray = (stdioArray, ipc) => ipc && !stdioArray.includes("ipc") ? [...stdioArray, "ipc"] : stdioArray;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/stdio-option.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/stdio-option.js
 var normalizeStdioOption = ({ stdio, ipc, buffer, ...options }, verboseInfo, isSync) => {
   const stdioArray = getStdioArray(stdio, options).map((stdioOption, fdNumber) => addDefaultValue2(stdioOption, fdNumber));
   return isSync ? normalizeStdioSync(stdioArray, buffer, verboseInfo) : normalizeIpcStdioArray(stdioArray, ipc);
@@ -33929,7 +33929,7 @@ var addDefaultValue2 = (stdioOption, fdNumber) => {
 var normalizeStdioSync = (stdioArray, buffer, verboseInfo) => stdioArray.map((stdioOption, fdNumber) => !buffer[fdNumber] && fdNumber !== 0 && !isFullVerbose(verboseInfo, fdNumber) && isOutputPipeOnly(stdioOption) ? "ignore" : stdioOption);
 var isOutputPipeOnly = (stdioOption) => stdioOption === "pipe" || Array.isArray(stdioOption) && stdioOption.every((item) => item === "pipe");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/native.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/native.js
 var import_node_fs2 = require("fs");
 var import_node_tty2 = __toESM(require("tty"), 1);
 var handleNativeStream = ({ stdioItem, stdioItem: { type }, isStdioArray, fdNumber, direction, isSync }) => {
@@ -33998,7 +33998,7 @@ var getStandardStream = (fdNumber, value, optionName) => {
   return standardStream;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/input-option.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/input-option.js
 var handleInputOptions = ({ input, inputFile }, fdNumber) => fdNumber === 0 ? [
   ...handleInputOption(input),
   ...handleInputFileOption(inputFile)
@@ -34034,7 +34034,7 @@ var getInputFileType = (inputFile) => {
   throw new Error("The `inputFile` option must be a file path string or a file URL.");
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/duplicate.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/duplicate.js
 var filterDuplicates = (stdioItems) => stdioItems.filter((stdioItemOne, indexOne) => stdioItems.every((stdioItemTwo, indexTwo) => stdioItemOne.value !== stdioItemTwo.value || indexOne >= indexTwo || stdioItemOne.type === "generator" || stdioItemOne.type === "asyncGenerator"));
 var getDuplicateStream = ({ stdioItem: { type, value, optionName }, direction, fileDescriptors, isSync }) => {
   const otherStdioItems = getOtherStdioItems(fileDescriptors, type);
@@ -34109,7 +34109,7 @@ var throwOnDuplicateStream = (stdioItem, optionName, type) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle.js
 var handleStdio = (addProperties3, options, verboseInfo, isSync) => {
   const stdio = normalizeStdioOption(options, verboseInfo, isSync);
   const initialFileDescriptors = stdio.map((stdioOption, fdNumber) => getFileDescriptor({
@@ -34269,7 +34269,7 @@ var forwardStdio = (stdioItems) => {
   return type === "native" ? value : "pipe";
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-sync.js
 var handleStdioSync = (options, verboseInfo) => handleStdio(addPropertiesSync, options, verboseInfo, true);
 var forbiddenIfSync = ({ type, optionName }) => {
   throwInvalidSyncValue(optionName, TYPE_TO_MESSAGE[type]);
@@ -34315,14 +34315,14 @@ var addPropertiesSync = {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/strip-newline.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/strip-newline.js
 var stripNewline = (value, { stripFinalNewline: stripFinalNewline2 }, fdNumber) => getStripFinalNewline(stripFinalNewline2, fdNumber) && value !== void 0 && !Array.isArray(value) ? stripFinalNewline(value) : value;
 var getStripFinalNewline = (stripFinalNewline2, fdNumber) => fdNumber === "all" ? stripFinalNewline2[1] || stripFinalNewline2[2] : stripFinalNewline2[fdNumber];
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
 var import_node_stream = require("stream");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/split.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/split.js
 var getSplitLinesGenerator = (binary, preserveNewlines, skipped, state) => binary || skipped ? void 0 : initializeSplitLines(preserveNewlines, state);
 var splitLinesSync = (chunk, preserveNewlines, objectMode) => objectMode ? chunk.flatMap((item) => splitLinesItemSync(item, preserveNewlines)) : splitLinesItemSync(chunk, preserveNewlines);
 var splitLinesItemSync = (chunk, preserveNewlines) => {
@@ -34402,7 +34402,7 @@ var linesUint8ArrayInfo = {
   concatBytes: concatUint8Array
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/validate.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/validate.js
 var import_node_buffer = require("buffer");
 var getValidateTransformInput = (writableObjectMode, optionName) => writableObjectMode ? void 0 : validateStringTransformInput.bind(void 0, optionName);
 var validateStringTransformInput = function* (optionName, chunk) {
@@ -34431,7 +34431,7 @@ Instead, \`yield\` should either be called with a value, or not be called at all
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/encoding-transform.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/encoding-transform.js
 var import_node_buffer2 = require("buffer");
 var import_node_string_decoder2 = require("string_decoder");
 var getEncodingTransformGenerator = (binary, encoding, skipped) => {
@@ -34466,7 +34466,7 @@ var encodingStringFinal = function* (stringDecoder) {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-async.js
 var import_node_util7 = require("util");
 var pushChunks = (0, import_node_util7.callbackify)(async (getChunks, state, getChunksArguments, transformStream) => {
   state.currentIterable = getChunks(...getChunksArguments);
@@ -34514,7 +34514,7 @@ var identityGenerator = function* (chunk) {
   yield chunk;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/run-sync.js
 var pushChunksSync = (getChunksSync, getChunksArguments, transformStream, done) => {
   try {
     for (const chunk of getChunksSync(...getChunksArguments)) {
@@ -34556,7 +34556,7 @@ var identityGenerator2 = function* (chunk) {
   yield chunk;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/transform/generator.js
 var generatorToStream = ({
   value,
   value: { transform: transform2, final, writableObjectMode, readableObjectMode },
@@ -34610,7 +34610,7 @@ var addInternalGenerators = ({ transform: transform2, final, binary, writableObj
   ].filter(Boolean);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/input-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/input-sync.js
 var addInputOptionsSync = (fileDescriptors, options) => {
   for (const fdNumber of getInputFdNumbers(fileDescriptors)) {
     addInputOptionSync(fileDescriptors, fdNumber, options);
@@ -34643,10 +34643,10 @@ var validateSerializable = (newContents) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
 var import_node_fs4 = require("fs");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/output.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/output.js
 var shouldLogOutput = ({ stdioItems, encoding, verboseInfo, fdNumber }) => fdNumber !== "all" && isFullVerbose(verboseInfo, fdNumber) && !BINARY_ENCODINGS.has(encoding) && fdUsesVerbose(fdNumber) && (stdioItems.some(({ type, value }) => type === "native" && PIPED_STDIO_VALUES.has(value)) || stdioItems.every(({ type }) => TRANSFORM_TYPES.has(type)));
 var fdUsesVerbose = (fdNumber) => fdNumber === 1 || fdNumber === 2;
 var PIPED_STDIO_VALUES = /* @__PURE__ */ new Set(["pipe", "overlapped"]);
@@ -34673,7 +34673,7 @@ var logLine = (line, fdNumber, verboseInfo) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-sync.js
 var transformOutputSync = ({ fileDescriptors, syncResult: { output }, options, isMaxBuffer, verboseInfo }) => {
   if (output === null) {
     return { output: Array.from({ length: 3 }) };
@@ -34776,7 +34776,7 @@ var writeToFiles = (serializedResult, stdioItems, outputFiles) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-sync.js
 var getAllSync = ([, stdout, stderr], options) => {
   if (!options.all) {
     return;
@@ -34799,7 +34799,7 @@ var getAllSync = ([, stdout, stderr], options) => {
   return `${stdout}${stderr}`;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-async.js
 var import_node_events7 = require("events");
 var waitForExit = async (subprocess, context) => {
   const [exitCode, signal] = await waitForExitOrError(subprocess);
@@ -34833,7 +34833,7 @@ var waitForSuccessfulExit = async (exitPromise) => {
 var isSubprocessErrorExit = (exitCode, signal) => exitCode === void 0 && signal === void 0;
 var isFailedExit = (exitCode, signal) => exitCode !== 0 || signal !== null;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/exit-sync.js
 var getExitResultSync = ({ error: error2, status: exitCode, signal, output }, { maxBuffer }) => {
   const resultError = getResultError(error2, exitCode, signal);
   const timedOut = resultError?.code === "ETIMEDOUT";
@@ -34853,7 +34853,7 @@ var getResultError = (error2, exitCode, signal) => {
   return isFailedExit(exitCode, signal) ? new DiscardedError() : void 0;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-sync.js
 var execaCoreSync = (rawFile, rawArguments, rawOptions) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleSyncArguments(rawFile, rawArguments, rawOptions);
   const result = spawnSubprocessSync({
@@ -34985,14 +34985,14 @@ var getSyncResult = ({ error: error2, exitCode, signal, timedOut, isMaxBuffer, s
   isSync: true
 });
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
 var import_node_events14 = require("events");
 var import_node_child_process5 = require("child_process");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
 var import_node_process10 = __toESM(require("process"), 1);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-one.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-one.js
 var import_node_events8 = require("events");
 var getOneMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true, filter } = {}) => {
   validateIpcMethod({
@@ -35047,7 +35047,7 @@ var throwOnStrictError = async (ipcEmitter, isSubprocess, { signal }) => {
   throw getStrictResponseError(error2, isSubprocess);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-each.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/get-each.js
 var import_node_events9 = require("events");
 var getEachMessage = ({ anyProcess, channel, isSubprocess, ipc }, { reference = true } = {}) => loopOnMessages({
   anyProcess,
@@ -35126,7 +35126,7 @@ var throwIfStrictError = ({ error: error2 }) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/methods.js
 var addIpcMethods = (subprocess, { ipc }) => {
   Object.assign(subprocess, getIpcMethods(subprocess, false, ipc));
 };
@@ -35165,7 +35165,7 @@ var getIpcMethods = (anyProcess, isSubprocess, ipc) => ({
   })
 });
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/early-error.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/return/early-error.js
 var import_node_child_process4 = require("child_process");
 var import_node_stream2 = require("stream");
 var handleEarlyError = ({ error: error2, command, escapedCommand, fileDescriptors, options, startTime, verboseInfo }) => {
@@ -35214,7 +35214,7 @@ var duplex = () => new import_node_stream2.Duplex({ read() {
 } });
 var handleDummyPromise = async (error2, verboseInfo, options) => handleResult2(error2, verboseInfo, options);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/stdio/handle-async.js
 var import_node_fs5 = require("fs");
 var import_node_buffer3 = require("buffer");
 var import_node_stream3 = require("stream");
@@ -35259,7 +35259,7 @@ var addPropertiesAsync = {
   }
 };
 
-// ../../node_modules/.pnpm/@sindresorhus+merge-streams@4.0.0/node_modules/@sindresorhus/merge-streams/index.js
+// ../../../../../specbridge/node_modules/.pnpm/@sindresorhus+merge-streams@4.0.0/node_modules/@sindresorhus/merge-streams/index.js
 var import_node_events10 = require("events");
 var import_node_stream4 = require("stream");
 var import_promises6 = require("stream/promises");
@@ -35476,7 +35476,7 @@ var updateMaxListeners = (passThroughStream, increment3) => {
 var PASSTHROUGH_LISTENERS_COUNT = 2;
 var PASSTHROUGH_LISTENERS_PER_STREAM = 1;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/pipeline.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/pipeline.js
 var import_promises7 = require("stream/promises");
 var pipeStreams = (source, destination) => {
   source.pipe(destination);
@@ -35514,7 +35514,7 @@ var abortSourceStream = (source) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/output-async.js
 var pipeOutputAsync = (subprocess, fileDescriptors, controller) => {
   const pipeGroups = /* @__PURE__ */ new Map();
   for (const [fdNumber, { stdioItems, direction }] of Object.entries(fileDescriptors)) {
@@ -35566,10 +35566,10 @@ var setStandardStreamMaxListeners = (stream, { signal }) => {
 };
 var MAX_LISTENERS_INCREMENT = 2;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
 var import_node_events11 = require("events");
 
-// ../../node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/signals.js
+// ../../../../../specbridge/node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/signals.js
 var signals = [];
 signals.push("SIGHUP", "SIGINT", "SIGTERM");
 if (process.platform !== "win32") {
@@ -35593,7 +35593,7 @@ if (process.platform === "linux") {
   signals.push("SIGIO", "SIGPOLL", "SIGPWR", "SIGSTKFLT");
 }
 
-// ../../node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/index.js
+// ../../../../../specbridge/node_modules/.pnpm/signal-exit@4.1.0/node_modules/signal-exit/dist/mjs/index.js
 var processOk = (process11) => !!process11 && typeof process11 === "object" && typeof process11.removeListener === "function" && typeof process11.emit === "function" && typeof process11.reallyExit === "function" && typeof process11.listeners === "function" && typeof process11.kill === "function" && typeof process11.pid === "number" && typeof process11.on === "function";
 var kExitEmitter = /* @__PURE__ */ Symbol.for("signal-exit emitter");
 var global2 = globalThis;
@@ -35820,7 +35820,7 @@ var {
   unload
 } = signalExitWrap(processOk(process9) ? new SignalExit(process9) : new SignalExitFallback());
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/terminate/cleanup.js
 var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   if (!cleanup || detached) {
     return;
@@ -35833,7 +35833,7 @@ var cleanupOnExit = (subprocess, { cleanup, detached }, { signal }) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/pipe-arguments.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/pipe-arguments.js
 var normalizePipeArguments = ({ source, sourcePromise, boundOptions, createNested }, ...pipeArguments) => {
   const startTime = getStartTime();
   const {
@@ -35906,7 +35906,7 @@ var getSourceStream = (source, from) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/throw.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/throw.js
 var handlePipeArgumentsError = ({
   sourceStream,
   sourceError,
@@ -35955,7 +35955,7 @@ var createNonCommandError = ({ error: error2, fileDescriptors, sourceOptions, st
 });
 var PIPE_COMMAND_MESSAGE = "source.pipe(destination)";
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/sequence.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/sequence.js
 var waitForBothSubprocesses = async (subprocessPromises) => {
   const [
     { status: sourceStatus, reason: sourceReason, value: sourceResult = sourceReason },
@@ -35973,7 +35973,7 @@ var waitForBothSubprocesses = async (subprocessPromises) => {
   return destinationResult;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/streaming.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/streaming.js
 var import_promises8 = require("stream/promises");
 var pipeSubprocessStream = (sourceStream, destinationStream, maxListenersController) => {
   const mergedStream = MERGED_STREAMS.has(destinationStream) ? pipeMoreSubprocessStream(sourceStream, destinationStream) : pipeFirstSubprocessStream(sourceStream, destinationStream);
@@ -36004,7 +36004,7 @@ var MERGED_STREAMS = /* @__PURE__ */ new WeakMap();
 var SOURCE_LISTENERS_PER_PIPE = 2;
 var DESTINATION_LISTENERS_PER_PIPE = 1;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/abort.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/abort.js
 var import_node_util8 = require("util");
 var unpipeOnAbort = (unpipeSignal, unpipeContext) => unpipeSignal === void 0 ? [] : [unpipeOnSignalAbort(unpipeSignal, unpipeContext)];
 var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fileDescriptors, sourceOptions, startTime }) => {
@@ -36019,7 +36019,7 @@ var unpipeOnSignalAbort = async (unpipeSignal, { sourceStream, mergedStream, fil
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/setup.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/pipe/setup.js
 var pipeToSubprocess = (sourceInfo, ...pipeArguments) => {
   if (isPlainObject(pipeArguments[0])) {
     return pipeToSubprocess.bind(void 0, {
@@ -36078,10 +36078,10 @@ var handlePipePromise = async ({
 };
 var getSubprocessPromises = (sourcePromise, destination) => Promise.allSettled([sourcePromise, destination]);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
 var import_promises9 = require("timers/promises");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/iterate.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/iterate.js
 var import_node_events12 = require("events");
 var import_node_stream5 = require("stream");
 var iterateOnSubprocessStream = ({ subprocessStdout, subprocess, binary, shouldEncode, encoding, preserveNewlines }) => {
@@ -36174,7 +36174,7 @@ var getGenerators = ({ binary, shouldEncode, encoding, shouldSplit, preserveNewl
   getSplitLinesGenerator(binary, preserveNewlines, !shouldSplit, {})
 ].filter(Boolean);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/io/contents.js
 var getStreamOutput = async ({ stream, onStreamEnd, fdNumber, encoding, buffer, maxBuffer, lines, allMixed, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => {
   const logPromise = logOutputAsync({
     stream,
@@ -36265,7 +36265,7 @@ var getBufferedData = async (streamPromise) => {
 };
 var handleBufferedData = ({ bufferedData }) => isArrayBuffer(bufferedData) ? new Uint8Array(bufferedData) : bufferedData;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-stream.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-stream.js
 var import_promises10 = require("stream/promises");
 var waitForStream = async (stream, fdNumber, streamInfo, { isSameDirection, stopOnExit = false } = {}) => {
   const state = handleStdinDestroy(stream, streamInfo);
@@ -36318,7 +36318,7 @@ var isInputFileDescriptor = ({ fileDescriptors }, fdNumber) => fdNumber !== "all
 var isStreamAbort = (error2) => error2?.code === "ERR_STREAM_PREMATURE_CLOSE";
 var isStreamEpipe = (error2) => error2?.code === "EPIPE";
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/stdio.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/stdio.js
 var waitForStdioStreams = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => subprocess.stdio.map((stream, fdNumber) => waitForSubprocessStream({
   stream,
   fdNumber,
@@ -36359,7 +36359,7 @@ var waitForSubprocessStream = async ({ stream, fdNumber, encoding, buffer, maxBu
   return output;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/all-async.js
 var makeAllStream = ({ stdout, stderr }, { all }) => all && (stdout || stderr) ? mergeStreams([stdout, stderr].filter(Boolean)) : void 0;
 var waitForAllStream = ({ subprocess, encoding, buffer, maxBuffer, lines, stripFinalNewline: stripFinalNewline2, verboseInfo, streamInfo }) => waitForSubprocessStream({
   ...getAllStream(subprocess, buffer),
@@ -36387,10 +36387,10 @@ var getAllStream = ({ stdout, stderr, all }, [, bufferStdout, bufferStderr]) => 
 };
 var getAllMixed = ({ all, stdout, stderr }) => all && stdout && stderr && stdout.readableObjectMode !== stderr.readableObjectMode;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
 var import_node_events13 = require("events");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/ipc.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/verbose/ipc.js
 var shouldLogIpc = (verboseInfo) => isFullVerbose(verboseInfo, "ipc");
 var logIpcOutput = (message2, verboseInfo) => {
   const verboseMessage = serializeVerboseMessage(message2);
@@ -36402,7 +36402,7 @@ var logIpcOutput = (message2, verboseInfo) => {
   });
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/buffer-messages.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/ipc/buffer-messages.js
 var waitForIpcOutput = async ({
   subprocess,
   buffer: bufferArray,
@@ -36440,7 +36440,7 @@ var getBufferedIpcOutput = async (ipcOutputPromise, ipcOutput) => {
   return ipcOutput;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/resolve/wait-subprocess.js
 var waitForSubprocessResult = async ({
   subprocess,
   options: {
@@ -36556,7 +36556,7 @@ var throwOnSubprocessError = async (subprocess, { signal }) => {
   throw error2;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/concurrent.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/concurrent.js
 var initializeConcurrentStreams = () => ({
   readableDestroy: /* @__PURE__ */ new WeakMap(),
   writableFinal: /* @__PURE__ */ new WeakMap(),
@@ -36582,11 +36582,11 @@ var waitForConcurrentStreams = async ({ resolve: resolve2, promises }, subproces
   return !isSubprocessExit;
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
 var import_node_stream6 = require("stream");
 var import_node_util9 = require("util");
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/shared.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/shared.js
 var import_promises11 = require("stream/promises");
 var safeWaitForSubprocessStdin = async (subprocessStdin) => {
   if (subprocessStdin === void 0) {
@@ -36626,7 +36626,7 @@ var destroyOtherStream = (stream, isOpen, error2) => {
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/readable.js
 var createReadable = ({ subprocess, concurrentStreams, encoding }, { from, binary: binaryOption = true, preserveNewlines = true } = {}) => {
   const binary = binaryOption || BINARY_ENCODINGS.has(encoding);
   const { subprocessStdout, waitReadableDestroy } = getSubprocessStdout(subprocess, from, concurrentStreams);
@@ -36711,7 +36711,7 @@ var destroyOtherReadable = (stream, error2) => {
   destroyOtherStream(stream, stream.readable, error2);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/writable.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/writable.js
 var import_node_stream7 = require("stream");
 var import_node_util10 = require("util");
 var createWritable = ({ subprocess, concurrentStreams }, { to } = {}) => {
@@ -36777,7 +36777,7 @@ var destroyOtherWritable = (stream, error2) => {
   destroyOtherStream(stream, stream.writable, error2);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/duplex.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/duplex.js
 var import_node_stream8 = require("stream");
 var import_node_util11 = require("util");
 var createDuplex = ({ subprocess, concurrentStreams, encoding }, { from, to, binary: binaryOption = true, preserveNewlines = true } = {}) => {
@@ -36831,7 +36831,7 @@ var onDuplexDestroy = async ({ subprocessStdout, subprocessStdin, subprocess, wa
   ]);
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/iterable.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/iterable.js
 var createIterable = (subprocess, encoding, {
   from,
   binary: binaryOption = false,
@@ -36860,7 +36860,7 @@ var iterateOnStdoutData = async function* (onStdoutData, subprocessStdout, subpr
   }
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/add.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/convert/add.js
 var addConvertedStreams = (subprocess, { encoding }) => {
   const concurrentStreams = initializeConcurrentStreams();
   subprocess.readable = createReadable.bind(void 0, { subprocess, concurrentStreams, encoding });
@@ -36870,7 +36870,7 @@ var addConvertedStreams = (subprocess, { encoding }) => {
   subprocess[Symbol.asyncIterator] = createIterable.bind(void 0, subprocess, encoding, {});
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/promise.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/promise.js
 var mergePromise = (subprocess, promise) => {
   for (const [property, descriptor] of descriptors) {
     const value = descriptor.value.bind(promise);
@@ -36884,7 +36884,7 @@ var descriptors = ["then", "catch", "finally"].map((property) => [
   Reflect.getOwnPropertyDescriptor(nativePromisePrototype, property)
 ]);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/main-async.js
 var execaCoreAsync = (rawFile, rawArguments, rawOptions, createNested) => {
   const { file, commandArguments, command, escapedCommand, startTime, verboseInfo, options, fileDescriptors } = handleAsyncArguments(rawFile, rawArguments, rawOptions);
   const { subprocess, promise } = spawnSubprocessAsync({
@@ -37039,7 +37039,7 @@ var getAsyncResult = ({ errorInfo, exitCode, signal, stdio, all, ipcOutput, cont
   startTime
 });
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/bind.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/bind.js
 var mergeOptions = (boundOptions, options) => {
   const newOptions = Object.fromEntries(
     Object.entries(options).map(([optionName, optionValue]) => [
@@ -37057,7 +37057,7 @@ var mergeOption = (optionName, boundOptionValue, optionValue) => {
 };
 var DEEP_OPTIONS = /* @__PURE__ */ new Set(["env", ...FD_SPECIFIC_OPTIONS]);
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/create.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/create.js
 var createExeca = (mapArguments, boundOptions, deepOptions, setBoundExeca) => {
   const createNested = (mapArguments2, boundOptions2, setBoundExeca2) => createExeca(mapArguments2, boundOptions2, deepOptions, setBoundExeca2);
   const boundExeca = (...execaArguments) => callBoundExeca({
@@ -37103,7 +37103,7 @@ var parseArguments = ({ mapArguments, firstArgument, nextArguments, deepOptions,
   };
 };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/command.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/command.js
 var mapCommandAsync = ({ file, commandArguments }) => parseCommand(file, commandArguments);
 var mapCommandSync = ({ file, commandArguments }) => ({ ...parseCommand(file, commandArguments), isSync: true });
 var parseCommand = (command, unusedArguments) => {
@@ -37134,7 +37134,7 @@ var parseCommandString = (command) => {
 };
 var SPACES_REGEXP = / +/g;
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/script.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/lib/methods/script.js
 var setScriptSync = (boundExeca, createNested, boundOptions) => {
   boundExeca.sync = createNested(mapScriptSync, boundOptions);
   boundExeca.s = boundExeca.sync;
@@ -37145,7 +37145,7 @@ var getScriptOptions = (options) => ({ options: { ...getScriptStdinOption(option
 var getScriptStdinOption = ({ input, inputFile, stdio }) => input === void 0 && inputFile === void 0 && stdio === void 0 ? { stdin: "inherit" } : {};
 var deepScriptOptions = { preferLocal: true };
 
-// ../../node_modules/.pnpm/execa@9.6.1/node_modules/execa/index.js
+// ../../../../../specbridge/node_modules/.pnpm/execa@9.6.1/node_modules/execa/index.js
 var execa = createExeca(() => ({}));
 var execaSync = createExeca(() => ({ isSync: true }));
 var execaCommand = createExeca(mapCommandAsync);
@@ -37171,12 +37171,12 @@ var import_buffer3 = require("buffer");
 var import_crypto3 = require("crypto");
 var import_buffer4 = require("buffer");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 var import_node_crypto2 = require("crypto");
 var import_node_path6 = require("path");
 var import_node_child_process6 = require("child_process");
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
+// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-protocol@0.1.1-rc.1_@deepseek-ai+cordis@4.0.1_@deepseek-ai+dsh-invariant_xsjcgguoedzlkqgw4wib2jrjgm/node_modules/@deepseek-ai/dsh-sdk-protocol/lib/index.js
 var import_node_crypto = require("crypto");
 var import_node_string_decoder3 = require("string_decoder");
 var JsonRpcResponseError = class extends Error {
@@ -37413,7 +37413,7 @@ function abortError(reason3) {
   return reason3 instanceof Error ? reason3 : /* @__PURE__ */ new Error(`JSON-RPC request aborted: ${String(reason3)}`);
 }
 
-// ../../node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
+// ../../../../../specbridge/node_modules/.pnpm/@deepseek-ai+dsh-sdk-client@0.1.1-rc.1_teq4kq266b3dkw7rcc6wolnm4y/node_modules/@deepseek-ai/dsh-sdk-client/lib/index.js
 function exitsWithin(child, ms) {
   if (child.exitCode !== null || child.signalCode !== null) return Promise.resolve(true);
   return new Promise((resolve2) => {
@@ -39182,6 +39182,85 @@ var ClaudeCodeRunner = class {
     const stageReport = report;
     return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
   }
+  async invokeStructured(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution
+    });
+    try {
+      const processResult = await runClaudeInvocation(plan, this.config, execution);
+      const parsed = parseClaudeEnvelope(processResult.stdout);
+      const usage = usageFromEnvelope(parsed.envelope, processResult.observation.durationMs);
+      const cost = costFromEnvelope(parsed.envelope);
+      const base = {
+        runner: this.name,
+        rawStdout: processResult.stdout,
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings: plan.skippedFlags.map(
+          (flag) => `flag ${flag} is unsupported by this Claude Code version and was skipped`
+        ),
+        ...parsed.envelope?.session_id !== void 0 ? { sessionId: parsed.envelope.session_id } : {},
+        ...usage !== void 0 ? { usage } : {},
+        ...cost !== void 0 ? { cost } : {}
+      };
+      switch (processResult.status) {
+        case "timeout":
+          return { ...base, outcome: "timed-out", failureReason: processResult.failureReason ?? "timeout" };
+        case "cancelled":
+          return { ...base, outcome: "cancelled", failureReason: processResult.failureReason ?? "cancelled" };
+        case "output-limit":
+        case "spawn-failed":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? processResult.status
+          };
+        case "ok":
+        case "nonzero-exit":
+          break;
+      }
+      if (this.looksPermissionDenied(processResult, parsed.envelope?.subtype, parsed.envelope)) {
+        return {
+          ...base,
+          outcome: "permission-denied",
+          failureReason: "Claude Code reported a permission denial."
+        };
+      }
+      if (processResult.status === "nonzero-exit" || parsed.envelope?.is_error === true) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: processResult.status === "nonzero-exit" ? claudeFailureProblem(parsed.problem ?? "the runner produced no output", processResult) : `Claude Code reported an error result${parsed.envelope?.subtype !== void 0 ? ` (${parsed.envelope.subtype})` : ""}`,
+          ...parsed.reportText !== void 0 ? { invalidStructuredOutput: parsed.reportText } : {}
+        };
+      }
+      const text15 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText;
+      if (text15 === void 0 || safeJsonParse(text15) === void 0) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: parsed.problem ?? "the runner returned no valid JSON document",
+          ...text15 !== void 0 ? { invalidStructuredOutput: text15 } : {}
+        };
+      }
+      return { ...base, outcome: "completed", text: text15.trim() };
+    } finally {
+      cleanupTempFiles(plan);
+    }
+  }
   async executeTask(input, execution) {
     return this.runTask(input.prompt, execution, {
       ...input.sessionId !== void 0 ? { sessionId: input.sessionId } : {}
@@ -40217,6 +40296,115 @@ var CodexCliRunner = class {
     const { report, ...rest } = mapped;
     const stageReport = report;
     return { ...rest, ...stageReport !== void 0 ? { report: stageReport } : {} };
+  }
+  async invokeStructured(input, execution) {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== void 0) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildCodexInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution
+    });
+    try {
+      const processResult = await runCodexInvocation(plan, this.config, execution);
+      const stream = parseCodexEventStream(processResult.stdout);
+      const warnings = plan.skippedFlags.map(
+        (flag) => `flag ${flag} is unsupported by this Codex CLI version and was skipped`
+      );
+      const normalizedEvents = normalizeCodexEvents(
+        stream,
+        {
+          runner: this.name,
+          profile: this.name,
+          runId: "pending",
+          attemptId: "pending"
+        },
+        () => (/* @__PURE__ */ new Date()).toISOString()
+      );
+      const usage = usageFromStream(stream, processResult.observation.durationMs, this.config.model);
+      const base = {
+        runner: this.name,
+        rawStdout: redactCodexStdoutForRetention(processResult.stdout),
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings,
+        normalizedEvents,
+        ...usage !== void 0 ? { usage } : {},
+        ...stream.threadId !== void 0 ? { sessionId: stream.threadId } : {}
+      };
+      switch (processResult.status) {
+        case "timeout":
+          return {
+            ...base,
+            outcome: "timed-out",
+            failureReason: processResult.failureReason ?? "timeout",
+            error: runnerError({ code: "timed_out", message: "The Codex process timed out." })
+          };
+        case "cancelled":
+          return {
+            ...base,
+            outcome: "cancelled",
+            failureReason: processResult.failureReason ?? "cancelled",
+            error: runnerError({ code: "cancelled", message: "The Codex process was cancelled." })
+          };
+        case "output-limit":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? "output limit exceeded",
+            error: runnerError({
+              code: "output_limit_exceeded",
+              message: "The Codex process exceeded its output limit."
+            })
+          };
+        case "spawn-failed":
+          return {
+            ...base,
+            outcome: "failed",
+            failureReason: processResult.failureReason ?? "spawn failed",
+            error: runnerError({
+              code: "executable_not_found",
+              message: "The Codex CLI could not be started."
+            })
+          };
+        case "ok":
+          break;
+        case "nonzero-exit": {
+          const error2 = classifyCodexFailure(processResult.stderr, stream.errors);
+          return {
+            ...base,
+            outcome: error2.code === "permission_denied" ? "permission-denied" : "failed",
+            failureReason: error2.message,
+            error: error2
+          };
+        }
+      }
+      const finalText = readLastMessage(plan) ?? stream.lastAgentMessage;
+      if (finalText === void 0 || strictJsonParse(finalText) === void 0) {
+        return {
+          ...base,
+          outcome: "malformed-output",
+          failureReason: finalText === void 0 ? "the runner returned no final structured result" : "the final Codex message is not a bare JSON document",
+          error: runnerError({
+            code: "structured_output_invalid",
+            message: "The Codex orchestration response was not a valid JSON document."
+          }),
+          ...finalText !== void 0 ? { invalidStructuredOutput: finalText } : {}
+        };
+      }
+      return { ...base, outcome: "completed", text: finalText.trim() };
+    } finally {
+      cleanupCodexTempFiles(plan);
+    }
   }
   async executeTask(input, execution) {
     return this.runTask(input.prompt, execution, {});
@@ -54035,8 +54223,6 @@ var import_fs42 = require("fs");
 var import_path44 = __toESM(require("path"), 1);
 var import_fs43 = require("fs");
 var import_path45 = __toESM(require("path"), 1);
-var import_fs44 = require("fs");
-var import_path46 = __toESM(require("path"), 1);
 
 // ../../packages/mission/dist/index.js
 var import_fs30 = require("fs");
@@ -56386,28 +56572,27 @@ function observeSpecApproval(deps4, missionId) {
 }
 
 // ../../packages/orchestration/dist/index.js
+var import_path46 = __toESM(require("path"), 1);
+var import_fs44 = require("fs");
 var import_path47 = __toESM(require("path"), 1);
+var import_crypto23 = require("crypto");
 var import_fs45 = require("fs");
 var import_path48 = __toESM(require("path"), 1);
-var import_crypto23 = require("crypto");
-var import_fs46 = require("fs");
 var import_path49 = __toESM(require("path"), 1);
+var import_fs46 = require("fs");
 var import_path50 = __toESM(require("path"), 1);
-var import_path51 = __toESM(require("path"), 1);
 var import_fs47 = require("fs");
-var import_path52 = __toESM(require("path"), 1);
+var import_path51 = __toESM(require("path"), 1);
 var import_fs48 = require("fs");
-var import_path53 = __toESM(require("path"), 1);
+var import_path52 = __toESM(require("path"), 1);
 var import_fs49 = require("fs");
-var import_path54 = __toESM(require("path"), 1);
+var import_path53 = __toESM(require("path"), 1);
 var import_fs50 = require("fs");
-var import_path55 = __toESM(require("path"), 1);
+var import_path54 = __toESM(require("path"), 1);
 var import_fs51 = require("fs");
-var import_path56 = __toESM(require("path"), 1);
+var import_path55 = __toESM(require("path"), 1);
 var import_fs52 = require("fs");
-var import_path57 = __toESM(require("path"), 1);
-var import_fs53 = require("fs");
-var import_path58 = __toESM(require("path"), 1);
+var import_path56 = __toESM(require("path"), 1);
 var import_crypto24 = require("crypto");
 var ORCHESTRATION_PHASES = [
   /** The run exists; no intent has been assessed yet. */
@@ -60550,7 +60735,6 @@ function assessCompletion(gate, jobId) {
   }
 }
 var LOCAL_WORKER_ID = "local-llamacpp";
-var CLAUDE_WORKER_ID = "claude-code";
 function resolveWorkers(config2) {
   const workers = [];
   const local = config2.localInference;
@@ -60575,7 +60759,7 @@ function resolveWorkers(config2) {
     });
   }
   workers.push({
-    workerId: CLAUDE_WORKER_ID,
+    workerId: config2.defaultRunner,
     runnerProfile: config2.defaultRunner,
     roles: [
       "CLASSIFIER",
@@ -60649,7 +60833,7 @@ function selectWorker(input) {
     );
     if (writer === void 0) {
       throw new OrchestrationError("SBO034", `No repository-writing worker is available for ${role}.`, {
-        remediation: ["Check the Claude Code runner with `specbridge runner doctor claude-code`."],
+        remediation: ["Check the configured default runner with `specbridge runner doctor`."],
         failureCategory: "CAPABILITY_UNAVAILABLE"
       });
     }
@@ -68913,10 +69097,10 @@ function assessContextMiss(input) {
   for (const symbol of extractSymbolReferences(input.workerReportedText ?? "")) {
     const declaring = input.index?.declaring(symbol) ?? [];
     if (declaring.length === 0) continue;
-    if (declaring.some((path272) => provided.has(path272))) continue;
+    if (declaring.some((path252) => provided.has(path252))) continue;
     signals2.add("UNKNOWN_SYMBOL_REFERENCE");
     if (!missingSymbols.includes(symbol)) missingSymbols.push(symbol);
-    for (const path272 of declaring) if (!missingPaths.includes(path272)) missingPaths.push(path272);
+    for (const path252 of declaring) if (!missingPaths.includes(path252)) missingPaths.push(path252);
   }
   for (const candidate of extractPathReferences2(input.failureText ?? "")) {
     if (provided.has(candidate)) continue;
@@ -68924,7 +69108,7 @@ function assessContextMiss(input) {
     signals2.add("FAILURE_IN_UNSELECTED_FILE");
     if (!missingPaths.includes(candidate)) missingPaths.push(candidate);
   }
-  const staleSelected = (input.refreshedPaths ?? []).filter((path272) => provided.has(path272));
+  const staleSelected = (input.refreshedPaths ?? []).filter((path252) => provided.has(path252));
   if (staleSelected.length > 0) signals2.add("SELECTED_ARTIFACT_STALE");
   const droppedMandatory = (input.plan?.excludedCandidates ?? []).filter(
     (entry2) => entry2.reason === "BUDGET_EXHAUSTED" || entry2.reason === "TOO_LARGE"
@@ -69028,7 +69212,7 @@ function runCriterionCheck(check22, evidence) {
     case "changed-within": {
       const prefix = normalizePath2(check22.value);
       const outside = evidence.changedPaths.filter(
-        (path272) => !normalizePath2(path272).startsWith(prefix)
+        (path252) => !normalizePath2(path252).startsWith(prefix)
       );
       return outside.length === 0 ? { outcome: "PASSED", detail: `every change is inside ${check22.value}` } : {
         outcome: "FAILED",
@@ -69044,8 +69228,8 @@ function runCriterionCheck(check22, evidence) {
     }
   }
 }
-function normalizePath2(path272) {
-  return path272.replace(/\\/g, "/").replace(/^\.\//, "");
+function normalizePath2(path252) {
+  return path252.replace(/\\/g, "/").replace(/^\.\//, "");
 }
 function inferLevel(name) {
   return /test|spec|e2e|integration|regression|contract/i.test(name) ? "TESTS" : "BUILD_STATIC";
@@ -73062,17 +73246,6 @@ var AUTH_FAILURE_PATTERN = new RegExp(
   String.raw`\b(401|403|unauthorized|unauthenticated|failed to authenticate` + String.raw`|re-?authenticate|oauth[^.]{0,40}\bexpired\b|token has expired` + String.raw`|expired token|invalid api key|api key not found|please log ?in` + String.raw`|credentials? (are )?(invalid|missing|expired))\b`,
   "i"
 );
-var AUTH_FAILURE_MAX_CHARS = 2e3;
-function looksLikeAuthenticationFailure(text93) {
-  const collapsed = text93.trim();
-  if (collapsed.length === 0 || collapsed.length > AUTH_FAILURE_MAX_CHARS) return false;
-  try {
-    JSON.parse(collapsed);
-    return false;
-  } catch {
-  }
-  return AUTH_FAILURE_PATTERN.test(collapsed);
-}
 function observedExcerpt(text93) {
   return text93.replace(/\s+/g, " ").trim().slice(0, OBSERVED_OUTPUT_EXCERPT_CHARS);
 }
@@ -73179,23 +73352,22 @@ ${correctionMessage(invocation.role, validated.problem)}`;
   };
 }
 async function runLargeRole(invocation) {
-  const profile = invocation.config.runnerProfiles[invocation.runnerProfile];
-  if (profile === void 0 || profile.runner !== "claude-code") {
+  const registry2 = invocation.registry ?? createDefaultRunnerRegistry(invocation.config);
+  let profile;
+  try {
+    profile = registry2.getProfile(invocation.runnerProfile);
+  } catch (cause) {
     return {
       ok: false,
       kind: "worker-unavailable",
-      problem: `Runner profile "${invocation.runnerProfile}" is not a Claude Code profile.`
+      problem: cause instanceof Error ? cause.message : `Runner profile "${invocation.runnerProfile}" is unavailable.`
     };
   }
-  const claudeProfile = profile;
-  const probe = invocation.cachedProbe ?? await probeClaude(claudeProfile, {
-    ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
-  });
-  if (!probe.found || probe.status === "unavailable" || probe.status === "error") {
+  if (profile.config.enabled !== true || profile.runner.invokeStructured === void 0) {
     return {
       ok: false,
       kind: "worker-unavailable",
-      problem: `The Claude Code CLI is not available (status ${probe.status}).`
+      problem: profile.config.enabled !== true ? `Runner profile "${invocation.runnerProfile}" is disabled.` : `Runner profile "${invocation.runnerProfile}" does not support structured orchestration roles.`
     };
   }
   const prompt = [
@@ -73205,89 +73377,49 @@ async function runLargeRole(invocation) {
     "",
     invocation.packet
   ].join("\n");
-  const plan = buildClaudeInvocation({
-    config: claudeProfile,
-    probe,
+  const result = await profile.runner.invokeStructured({
     prompt,
     toolPolicy: "inspect-only",
-    outputJsonSchema: AGENT_OUTPUT_JSON_SCHEMAS[invocation.role],
-    execution: {
-      workspaceRoot: invocation.workspace.rootDir,
-      runDir: invocation.scratchDir,
-      timeoutMs: invocation.timeoutMs
-    }
+    schemaName: invocation.role,
+    outputJsonSchema: AGENT_OUTPUT_JSON_SCHEMAS[invocation.role]
+  }, {
+    workspaceRoot: invocation.workspace.rootDir,
+    runDir: invocation.scratchDir,
+    timeoutMs: invocation.timeoutMs,
+    ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
   });
-  try {
-    const processResult = await runSafeProcess({
-      executable: plan.executable,
-      argv: plan.argv,
-      cwd: invocation.workspace.rootDir,
-      timeoutMs: invocation.timeoutMs,
-      stdin: plan.stdin,
-      ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
-    });
-    if (processResult.status === "cancelled") {
-      return { ok: false, kind: "cancelled", problem: "The role invocation was cancelled." };
-    }
-    if (processResult.status !== "ok" && processResult.status !== "nonzero-exit") {
-      return {
-        ok: false,
-        kind: "worker-unavailable",
-        problem: processResult.failureReason ?? `the runner process ended with status ${processResult.status}`
-      };
-    }
-    const parsed = parseClaudeEnvelope(processResult.stdout);
-    if (parsed.problem !== void 0) {
-      return {
-        ok: false,
-        kind: "invalid-output",
-        problem: claudeFailureProblem(parsed.problem, processResult),
-        probe
-      };
-    }
-    const text93 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
-    const validated = validateAgentOutput(invocation.role, text93);
-    if (!validated.ok) {
-      if (looksLikeAuthenticationFailure(text93)) {
-        return {
-          ok: false,
-          // NOT invalid-output: the worker is unusable, not incoherent, and
-          // the two need different answers from a person.
-          kind: "worker-unavailable",
-          problem: `The ${invocation.role} worker is not authenticated: ${observedExcerpt(text93)}`,
-          observed: observedExcerpt(text93),
-          probe
-        };
-      }
-      return {
-        ok: false,
-        kind: "invalid-output",
-        problem: validated.problem,
-        observed: observedExcerpt(text93),
-        probe
-      };
-    }
-    const usage = usageFromEnvelope(parsed.envelope, 0);
-    const cost = costFromEnvelope(parsed.envelope);
-    return {
-      ok: true,
-      output: validated.output,
-      raw: text93,
-      usage: {
-        inputTokens: usage?.inputTokens ?? null,
-        outputTokens: usage?.outputTokens ?? null,
-        // Only provider-reported USD amounts count; nothing is fabricated.
-        costUsd: cost !== null && cost !== void 0 && cost.currency === "USD" ? cost.amount : null
-      },
-      corrected: false,
-      probe
-    };
-  } finally {
-    try {
-      (0, import_fs43.rmSync)(import_path45.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
-    } catch {
-    }
+  if (result.outcome === "cancelled") {
+    return { ok: false, kind: "cancelled", problem: result.failureReason ?? "The role invocation was cancelled." };
   }
+  if (result.outcome !== "completed" || result.text === void 0) {
+    const observed = result.invalidStructuredOutput;
+    return {
+      ok: false,
+      kind: result.outcome === "malformed-output" ? "invalid-output" : "worker-unavailable",
+      problem: result.failureReason ?? result.error?.message ?? `Runner profile "${invocation.runnerProfile}" ended with ${result.outcome}.`,
+      ...observed !== void 0 ? { observed: observedExcerpt(observed) } : {}
+    };
+  }
+  const validated = validateAgentOutput(invocation.role, result.text);
+  if (!validated.ok) {
+    return {
+      ok: false,
+      kind: "invalid-output",
+      problem: validated.problem,
+      observed: observedExcerpt(result.text)
+    };
+  }
+  return {
+    ok: true,
+    output: validated.output,
+    raw: result.text,
+    usage: {
+      inputTokens: result.usage?.inputTokens ?? null,
+      outputTokens: result.usage?.outputTokens ?? null,
+      costUsd: result.cost?.currency === "USD" ? result.cost.amount : null
+    },
+    corrected: false
+  };
 }
 function createLocalManager(config2, onEvent) {
   if (!config2.localInference.enabled) return void 0;
@@ -73703,13 +73835,13 @@ function findResearchReuse(records, request) {
 var RESEARCH_DIR_NAME = "research";
 var ID_PATTERN7 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$/;
 function researchRootDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(workspace.sidecarDir, RESEARCH_DIR_NAME));
+  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(workspace.sidecarDir, RESEARCH_DIR_NAME));
 }
 function researchRecordsDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(researchRootDir(workspace), "records"));
+  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(researchRootDir(workspace), "records"));
 }
 function researchUsesDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(researchRootDir(workspace), "uses"));
+  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(researchRootDir(workspace), "uses"));
 }
 function assertResearchId(researchId) {
   if (!ID_PATTERN7.test(researchId)) throw new Error(`Invalid research id "${researchId}".`);
@@ -73719,7 +73851,7 @@ function researchRecordFile(workspace, researchId) {
   assertResearchId(researchId);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path48.default.join(researchRecordsDir(workspace), `${researchId}.json`)
+    import_path47.default.join(researchRecordsDir(workspace), `${researchId}.json`)
   );
 }
 function majorOf3(value) {
@@ -73727,10 +73859,10 @@ function majorOf3(value) {
 }
 function readResearchRecord(workspace, researchId) {
   const file = researchRecordFile(workspace, researchId);
-  if (!(0, import_fs45.existsSync)(file)) return { kind: "missing" };
+  if (!(0, import_fs44.existsSync)(file)) return { kind: "missing" };
   let value;
   try {
-    value = JSON.parse((0, import_fs45.readFileSync)(file, "utf8"));
+    value = JSON.parse((0, import_fs44.readFileSync)(file, "utf8"));
   } catch (cause) {
     return { kind: "corrupt", problem: cause instanceof Error ? cause.message : String(cause), file };
   }
@@ -73752,31 +73884,31 @@ function readResearchRecord(workspace, researchId) {
 function writeResearchRecord(workspace, value) {
   const record32 = researchRecordSchema.parse(value);
   const file = researchRecordFile(workspace, record32.researchId);
-  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  (0, import_fs44.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(record32, null, 2)}
 `);
   return record32;
 }
 function researchUseFile(workspace, useId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(researchUsesDir(workspace), `${useId}.json`));
+  return assertInsideWorkspace(workspace.rootDir, import_path47.default.join(researchUsesDir(workspace), `${useId}.json`));
 }
 function writeResearchUseRecord(workspace, value) {
   const record32 = researchUseRecordSchema.parse(value);
   const file = researchUseFile(workspace, record32.useId);
-  if ((0, import_fs45.existsSync)(file)) throw new Error(`research use id ${record32.useId} already exists`);
-  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
+  if ((0, import_fs44.existsSync)(file)) throw new Error(`research use id ${record32.useId} already exists`);
+  (0, import_fs44.mkdirSync)(import_path47.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(record32, null, 2)}
 `);
   return record32;
 }
 function listResearchUseRecords(workspace) {
   const dir = researchUsesDir(workspace);
-  if (!(0, import_fs45.existsSync)(dir)) return [];
+  if (!(0, import_fs44.existsSync)(dir)) return [];
   const records = [];
-  for (const entry2 of (0, import_fs45.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs44.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     try {
-      const value = JSON.parse((0, import_fs45.readFileSync)(import_path48.default.join(dir, entry2.name), "utf8"));
+      const value = JSON.parse((0, import_fs44.readFileSync)(import_path47.default.join(dir, entry2.name), "utf8"));
       const version2 = value !== null && typeof value === "object" && typeof value.schemaVersion === "string" ? value.schemaVersion : "";
       if (majorOf3(version2) !== majorOf3(RESEARCH_USE_SCHEMA_VERSION)) continue;
       const parsed = researchUseRecordSchema.safeParse(value);
@@ -73788,10 +73920,10 @@ function listResearchUseRecords(workspace) {
 }
 function listResearchRecords(workspace) {
   const dir = researchRecordsDir(workspace);
-  if (!(0, import_fs45.existsSync)(dir)) return { records: [], diagnostics: [] };
+  if (!(0, import_fs44.existsSync)(dir)) return { records: [], diagnostics: [] };
   const records = [];
   const diagnostics = [];
-  for (const entry2 of (0, import_fs45.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs44.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isFile() || !entry2.name.endsWith(".json")) continue;
     const researchId = entry2.name.slice(0, -5);
     if (!ID_PATTERN7.test(researchId)) continue;
@@ -74390,13 +74522,13 @@ function emptyResearchTelemetry(now52) {
   };
 }
 function researchTelemetryFile(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path49.default.join(researchRootDir(workspace), "telemetry.json"));
+  return assertInsideWorkspace(workspace.rootDir, import_path48.default.join(researchRootDir(workspace), "telemetry.json"));
 }
 function readResearchTelemetry(workspace, now52 = /* @__PURE__ */ new Date()) {
   const file = researchTelemetryFile(workspace);
-  if (!(0, import_fs46.existsSync)(file)) return { telemetry: emptyResearchTelemetry(now52) };
+  if (!(0, import_fs45.existsSync)(file)) return { telemetry: emptyResearchTelemetry(now52) };
   try {
-    const parsed = researchTelemetrySchema.safeParse(JSON.parse((0, import_fs46.readFileSync)(file, "utf8")));
+    const parsed = researchTelemetrySchema.safeParse(JSON.parse((0, import_fs45.readFileSync)(file, "utf8")));
     return parsed.success ? { telemetry: parsed.data } : { telemetry: emptyResearchTelemetry(now52), diagnostic: "research telemetry is schema-invalid" };
   } catch {
     return { telemetry: emptyResearchTelemetry(now52), diagnostic: "research telemetry is unreadable" };
@@ -74405,7 +74537,7 @@ function readResearchTelemetry(workspace, now52 = /* @__PURE__ */ new Date()) {
 function writeTelemetry(workspace, value) {
   const telemetry = researchTelemetrySchema.parse(value);
   const file = researchTelemetryFile(workspace);
-  (0, import_fs46.mkdirSync)(import_path49.default.dirname(file), { recursive: true });
+  (0, import_fs45.mkdirSync)(import_path48.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(telemetry, null, 2)}
 `);
   return telemetry;
@@ -75692,23 +75824,22 @@ ${correctionMessage(invocation.role, validated.problem)}`;
   };
 }
 async function runLargeObjectiveRole(invocation) {
-  const profile = invocation.config.runnerProfiles[invocation.runnerProfile];
-  if (profile === void 0 || profile.runner !== "claude-code") {
+  const registry2 = invocation.registry ?? createDefaultRunnerRegistry(invocation.config);
+  let profile;
+  try {
+    profile = registry2.getProfile(invocation.runnerProfile);
+  } catch (cause) {
     return {
       ok: false,
       kind: "worker-unavailable",
-      problem: `Runner profile "${invocation.runnerProfile}" is not a Claude Code profile.`
+      problem: cause instanceof Error ? cause.message : `Runner profile "${invocation.runnerProfile}" is unavailable.`
     };
   }
-  const claudeProfile = profile;
-  const probe = invocation.cachedProbe ?? await probeClaude(claudeProfile, {
-    ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
-  });
-  if (!probe.found || probe.status === "unavailable" || probe.status === "error") {
+  if (profile.config.enabled !== true || profile.runner.invokeStructured === void 0) {
     return {
       ok: false,
       kind: "worker-unavailable",
-      problem: `The Claude Code CLI is not available (status ${probe.status}).`
+      problem: profile.config.enabled !== true ? `Runner profile "${invocation.runnerProfile}" is disabled.` : `Runner profile "${invocation.runnerProfile}" does not support structured orchestration roles.`
     };
   }
   const prompt = [
@@ -75718,73 +75849,41 @@ async function runLargeObjectiveRole(invocation) {
     "",
     invocation.packet
   ].join("\n");
-  const plan = buildClaudeInvocation({
-    config: claudeProfile,
-    probe,
+  const result = await profile.runner.invokeStructured({
     prompt,
     toolPolicy: invocation.role === "BUILDER" ? "implementation" : "inspect-only",
-    outputJsonSchema: OBJECTIVE_OUTPUT_JSON_SCHEMAS[invocation.role],
-    execution: {
-      workspaceRoot: invocation.cwd,
-      runDir: invocation.scratchDir,
-      timeoutMs: invocation.timeoutMs
-    }
+    schemaName: invocation.role,
+    outputJsonSchema: OBJECTIVE_OUTPUT_JSON_SCHEMAS[invocation.role]
+  }, {
+    workspaceRoot: invocation.cwd,
+    runDir: invocation.scratchDir,
+    timeoutMs: invocation.timeoutMs,
+    ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
   });
-  try {
-    const processResult = await runSafeProcess({
-      executable: plan.executable,
-      argv: plan.argv,
-      cwd: invocation.cwd,
-      timeoutMs: invocation.timeoutMs,
-      stdin: plan.stdin,
-      ...invocation.signal !== void 0 ? { signal: invocation.signal } : {}
-    });
-    if (processResult.status === "cancelled") {
-      return { ok: false, kind: "cancelled", problem: "The worker invocation was cancelled.", probe };
-    }
-    if (processResult.status !== "ok" && processResult.status !== "nonzero-exit") {
-      return {
-        ok: false,
-        kind: "worker-unavailable",
-        problem: processResult.failureReason ?? `the worker process ended with status ${processResult.status}`,
-        probe
-      };
-    }
-    const parsed = parseClaudeEnvelope(processResult.stdout);
-    if (parsed.problem !== void 0) {
-      return {
-        ok: false,
-        kind: "invalid-output",
-        problem: claudeFailureProblem(parsed.problem, processResult),
-        probe
-      };
-    }
-    const text93 = parsed.structuredResult !== void 0 ? JSON.stringify(parsed.structuredResult) : parsed.reportText ?? "";
-    const validated = validateObjectiveOutput(invocation.role, text93);
-    if (!validated.ok) {
-      return { ok: false, kind: "invalid-output", problem: validated.problem, probe };
-    }
-    const usage = usageFromEnvelope(parsed.envelope, 0);
-    const cost = costFromEnvelope(parsed.envelope);
-    return {
-      ok: true,
-      output: validated.output,
-      raw: text93,
-      usage: {
-        inputTokens: usage?.inputTokens ?? null,
-        outputTokens: usage?.outputTokens ?? null,
-        costUsd: cost !== null && cost !== void 0 && cost.currency === "USD" ? cost.amount : null
-      },
-      probe
-    };
-  } finally {
-    cleanupTempFiles(plan);
-    try {
-      const { rmSync: rmSync82 } = await import("fs");
-      rmSync82(import_path51.default.join(invocation.scratchDir, "tmp"), { recursive: true, force: true });
-    } catch {
-    }
+  if (result.outcome === "cancelled") {
+    return { ok: false, kind: "cancelled", problem: result.failureReason ?? "The worker invocation was cancelled." };
   }
+  if (result.outcome !== "completed" || result.text === void 0) {
+    return {
+      ok: false,
+      kind: result.outcome === "malformed-output" ? "invalid-output" : "worker-unavailable",
+      problem: result.failureReason ?? result.error?.message ?? `Runner profile "${invocation.runnerProfile}" ended with ${result.outcome}.`
+    };
+  }
+  const validated = validateObjectiveOutput(invocation.role, result.text);
+  if (!validated.ok) {
+    return { ok: false, kind: "invalid-output", problem: validated.problem };
+  }
+  return {
+    ok: true,
+    output: validated.output,
+    raw: result.text,
+    usage: {
+      inputTokens: result.usage?.inputTokens ?? null,
+      outputTokens: result.usage?.outputTokens ?? null,
+      costUsd: result.cost?.currency === "USD" ? result.cost.amount : null
+    }
+  };
 }
 async function applyPatch(workspaceRoot, patch) {
   const result = await runSafeProcess({
@@ -75890,14 +75989,14 @@ async function integrateObjective(input) {
     const reconcile = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: input.runnerProfile,
       role: "BUILDER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path50.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path49.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: input.reconcileTimeoutMs ?? 6e5,
-      ...input.signal !== void 0 ? { signal: input.signal } : {},
-      ...input.cachedProbe !== void 0 ? { cachedProbe: input.cachedProbe } : {}
+      ...input.signal !== void 0 ? { signal: input.signal } : {}
     });
     if (!reconcile.ok || reconcile.output.outcome !== "CANDIDATE_COMPLETE") {
       await abort(`reconciliation of ${entry2.unit.workUnitId} failed`);
@@ -76347,7 +76446,7 @@ async function git3(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS3) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function worktreesRootDir(workspace, jobId) {
-  return import_path52.default.join(jobDir(workspace, jobId), "worktrees");
+  return import_path50.default.join(jobDir(workspace, jobId), "worktrees");
 }
 async function readCanonicalHead(workspace) {
   const head = await git3(workspace.rootDir, ["rev-parse", "HEAD"]);
@@ -76366,13 +76465,13 @@ async function createWorkerWorktree(input) {
   }
   const dir = assertInsideWorkspace(
     input.workspace.rootDir,
-    import_path52.default.join(worktreesRootDir(input.workspace, input.jobId), name)
+    import_path50.default.join(worktreesRootDir(input.workspace, input.jobId), name)
   );
   const baselineCommit = await readCanonicalHead(input.workspace);
-  if ((0, import_fs47.existsSync)(dir)) {
+  if ((0, import_fs46.existsSync)(dir)) {
     await removeWorkerWorktree(input.workspace, input.jobId, { dir });
   }
-  (0, import_fs47.mkdirSync)(import_path52.default.dirname(dir), { recursive: true });
+  (0, import_fs46.mkdirSync)(import_path50.default.dirname(dir), { recursive: true });
   const added = await git3(input.workspace.rootDir, ["worktree", "add", "--detach", dir, baselineCommit], 18e4);
   if (!added.ok) {
     throw new OrchestrationError("SBO048", `git worktree add failed: ${added.stderr.slice(0, 500)}`, {
@@ -76447,7 +76546,7 @@ async function runWorktreeVerification(handle, commands, signal) {
 async function removeWorkerWorktree(workspace, jobId, handle) {
   await git3(workspace.rootDir, ["worktree", "remove", "--force", handle.dir], 12e4);
   try {
-    (0, import_fs47.rmSync)(handle.dir, { recursive: true, force: true });
+    (0, import_fs46.rmSync)(handle.dir, { recursive: true, force: true });
   } catch {
   }
   await git3(workspace.rootDir, ["worktree", "prune"]);
@@ -76456,14 +76555,14 @@ async function removeWorkerWorktree(workspace, jobId, handle) {
 async function pruneWorktrees(workspace, jobId) {
   const removed = [];
   const root = worktreesRootDir(workspace, jobId);
-  if ((0, import_fs47.existsSync)(root)) {
+  if ((0, import_fs46.existsSync)(root)) {
     const { readdirSync: readdirSync112 } = await import("fs");
     for (const entry2 of readdirSync112(root, { withFileTypes: true })) {
       if (!entry2.isDirectory()) continue;
-      const dir = import_path52.default.join(root, entry2.name);
+      const dir = import_path50.default.join(root, entry2.name);
       await git3(workspace.rootDir, ["worktree", "remove", "--force", dir], 12e4);
       try {
-        (0, import_fs47.rmSync)(dir, { recursive: true, force: true });
+        (0, import_fs46.rmSync)(dir, { recursive: true, force: true });
       } catch {
       }
       removed.push(entry2.name);
@@ -77248,16 +77347,15 @@ async function decomposeObjective(input, truth, relevantContractIds, acceptance)
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: "DECOMPOSER",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path47.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path46.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
-      signal: input.signal,
-      cachedProbe: input.probeCache.probe
+      signal: input.signal
     });
-    if (large.probe !== void 0) input.probeCache.probe = large.probe;
     return large;
   })();
   input.countWorkerRun({
@@ -78269,18 +78367,18 @@ async function executeBuilder(context, prepared) {
     const reconcile = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
       role: "BUILDER",
       packet: packet2,
       cwd: worktree.dir,
-      scratchDir: import_path47.default.join(
+      scratchDir: import_path46.default.join(
         jobDir(input.workspace, input.jobId),
         "scratch",
         `${prepared.unitId}-a${prepared.attempt}-depfix`
       ),
       timeoutMs: input.policy.objectives.builderTimeoutMs,
-      signal: input.signal,
-      cachedProbe: input.probeCache.probe
+      signal: input.signal
     });
     if (!reconcile.ok || reconcile.output.outcome !== "CANDIDATE_COMPLETE") {
       const why = !reconcile.ok ? `${reconcile.kind}: ${reconcile.problem.slice(0, 400)}` : `worker outcome ${reconcile.output.outcome}: ${(reconcile.output.summary ?? "").slice(0, 300)}`;
@@ -78293,7 +78391,6 @@ async function executeBuilder(context, prepared) {
         }
       };
     }
-    if (reconcile.probe !== void 0) input.probeCache.probe = reconcile.probe;
   }
   if (prepared.priorCandidatePatch !== void 0 && prepared.priorCandidatePatch.trim().length > 0) {
     try {
@@ -78384,20 +78481,19 @@ async function executeBuilder(context, prepared) {
   const result = await runLargeObjectiveRole({
     workspace: input.workspace,
     config: input.config,
+    registry: input.registry,
     runnerProfile: input.runnerProfile ?? input.config.defaultRunner,
     role: "BUILDER",
     packet,
     cwd: worktree.dir,
-    scratchDir: import_path47.default.join(
+    scratchDir: import_path46.default.join(
       jobDir(input.workspace, input.jobId),
       "scratch",
       `${prepared.unitId}-a${prepared.attempt}`
     ),
     timeoutMs: input.policy.objectives.builderTimeoutMs,
-    signal: input.signal,
-    cachedProbe: input.probeCache.probe
+    signal: input.signal
   });
-  if (result.probe !== void 0) input.probeCache.probe = result.probe;
   if (!result.ok && isStrongQuotaFailure(result.problem)) {
     const resource = quotaFailureResource({
       observedAt: nowIso3(input),
@@ -79080,16 +79176,15 @@ async function runSemanticEvaluation(context, graph, unitId) {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: "EVALUATOR",
       packet: packetOverride ?? packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path47.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path46.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
-      signal: input.signal,
-      cachedProbe: input.probeCache.probe
+      signal: input.signal
     });
-    if (large.probe !== void 0) input.probeCache.probe = large.probe;
     return large;
   };
   const ranLocally = selection.worker.reasoningTier === "LOCAL_SMALL" && input.localManager !== void 0;
@@ -79721,16 +79816,15 @@ async function maybeAggregateSemantically(context, graph) {
     const large = await runLargeObjectiveRole({
       workspace: input.workspace,
       config: input.config,
+      registry: input.registry,
       runnerProfile: selection.worker.runnerProfile ?? input.config.defaultRunner,
       role: "AGGREGATOR",
       packet,
       cwd: input.workspace.rootDir,
-      scratchDir: import_path47.default.join(jobDir(input.workspace, input.jobId), "scratch"),
+      scratchDir: import_path46.default.join(jobDir(input.workspace, input.jobId), "scratch"),
       timeoutMs: 6e5,
-      signal: input.signal,
-      cachedProbe: input.probeCache.probe
+      signal: input.signal
     });
-    if (large.probe !== void 0) input.probeCache.probe = large.probe;
     return large;
   })();
   input.countWorkerRun({
@@ -79851,6 +79945,7 @@ async function integrateVerifiedCandidates(input, graph) {
   const result = await integrateObjective({
     workspace: input.workspace,
     config: input.config,
+    registry: input.registry,
     jobId: input.jobId,
     // Reconciling a conflicting candidate is a BUILD-sized job, not a
     // question-sized one: the worker reads the conflict, understands two
@@ -79869,7 +79964,6 @@ async function integrateVerifiedCandidates(input, graph) {
     clock: input.clock,
     idFactory: input.idFactory,
     signal: input.signal,
-    cachedProbe: input.probeCache.probe,
     onProgress: input.onProgress
   });
   if (!result.ok) {
@@ -80072,37 +80166,37 @@ var schedulingDecisionSchema = external_exports.object({
   createdAt: shortText15
 }).passthrough();
 function schedulingDir(workspace, jobId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path53.default.join(jobDir(workspace, jobId), "scheduling"));
+  return assertInsideWorkspace(workspace.rootDir, import_path51.default.join(jobDir(workspace, jobId), "scheduling"));
 }
 function decisionsFile2(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path53.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
+    import_path51.default.join(schedulingDir(workspace, jobId), "decisions.jsonl")
   );
 }
 function appendSchedulingDecision(workspace, record32, options) {
   const validated = schedulingDecisionSchema.parse(record32);
   const dir = schedulingDir(workspace, record32.jobId);
-  (0, import_fs48.mkdirSync)(dir, { recursive: true });
+  (0, import_fs47.mkdirSync)(dir, { recursive: true });
   const file = decisionsFile2(workspace, record32.jobId);
   const line = `${JSON.stringify(validated)}
 `;
-  const existing = (0, import_fs48.existsSync)(file) ? (0, import_fs48.readFileSync)(file, "utf8") : "";
+  const existing = (0, import_fs47.existsSync)(file) ? (0, import_fs47.readFileSync)(file, "utf8") : "";
   const lines = existing.split("\n").filter((entry2) => entry2.length > 0);
   if (lines.length + 1 > options.maxRecords) {
     const retained = [...lines, line.trimEnd()].slice(-options.maxRecords);
     writeFileAtomic(file, `${retained.join("\n")}
 `);
   } else {
-    (0, import_fs48.appendFileSync)(file, line, "utf8");
+    (0, import_fs47.appendFileSync)(file, line, "utf8");
   }
   return validated;
 }
 function readSchedulingDecisions(workspace, jobId, options = {}) {
   const file = decisionsFile2(workspace, jobId);
-  if (!(0, import_fs48.existsSync)(file)) return [];
+  if (!(0, import_fs47.existsSync)(file)) return [];
   const records = [];
-  for (const line of (0, import_fs48.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs47.readFileSync)(file, "utf8").split("\n")) {
     if (line.length === 0) continue;
     try {
       const parsed = schedulingDecisionSchema.safeParse(JSON.parse(line));
@@ -80665,7 +80759,7 @@ var ID_PATTERN8 = /^[A-Za-z0-9][A-Za-z0-9._-]{0,63}$/;
 function approvalsDir(workspace, jobId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path54.default.join(jobDir(workspace, jobId), "api-approvals")
+    import_path52.default.join(jobDir(workspace, jobId), "api-approvals")
   );
 }
 function approvalFile(workspace, jobId, approvalId) {
@@ -80674,26 +80768,26 @@ function approvalFile(workspace, jobId, approvalId) {
   }
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path54.default.join(approvalsDir(workspace, jobId), `${approvalId}.json`)
+    import_path52.default.join(approvalsDir(workspace, jobId), `${approvalId}.json`)
   );
 }
 function writeApiSpendApproval(workspace, approval) {
   const validated = apiSpendApprovalSchema.parse(approval);
   const file = approvalFile(workspace, validated.jobId, validated.approvalId);
-  (0, import_fs49.mkdirSync)(import_path54.default.dirname(file), { recursive: true });
+  (0, import_fs48.mkdirSync)(import_path52.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return validated;
 }
 function listApiSpendApprovals(workspace, jobId, options = {}) {
   const dir = approvalsDir(workspace, jobId);
-  if (!(0, import_fs49.existsSync)(dir)) return [];
+  if (!(0, import_fs48.existsSync)(dir)) return [];
   const approvals = [];
-  for (const name of (0, import_fs49.readdirSync)(dir).sort()) {
+  for (const name of (0, import_fs48.readdirSync)(dir).sort()) {
     if (!name.endsWith(".json")) continue;
     try {
       const parsed = apiSpendApprovalSchema.safeParse(
-        JSON.parse((0, import_fs49.readFileSync)(import_path54.default.join(dir, name), "utf8"))
+        JSON.parse((0, import_fs48.readFileSync)(import_path52.default.join(dir, name), "utf8"))
       );
       if (parsed.success) approvals.push(parsed.data);
     } catch {
@@ -80704,8 +80798,8 @@ function listApiSpendApprovals(workspace, jobId, options = {}) {
 }
 function readApiSpendApproval(workspace, jobId, approvalId) {
   const file = approvalFile(workspace, jobId, approvalId);
-  if (!(0, import_fs49.existsSync)(file)) return void 0;
-  const parsed = apiSpendApprovalSchema.safeParse(JSON.parse((0, import_fs49.readFileSync)(file, "utf8")));
+  if (!(0, import_fs48.existsSync)(file)) return void 0;
+  const parsed = apiSpendApprovalSchema.safeParse(JSON.parse((0, import_fs48.readFileSync)(file, "utf8")));
   return parsed.success ? parsed.data : void 0;
 }
 function requestApiSpendApproval(input) {
@@ -80853,14 +80947,14 @@ var MANUAL_TELEMETRY_SOURCE = "manual-file";
 function quotaTelemetryFilePath(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path55.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
+    import_path53.default.join(workspace.sidecarDir, QUOTA_TELEMETRY_FILE_NAME)
   );
 }
 function readQuotaTelemetryFile(workspace) {
   const file = quotaTelemetryFilePath(workspace);
-  if (!(0, import_fs50.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
+  if (!(0, import_fs49.existsSync)(file)) return quotaTelemetryFileSchema.parse({});
   try {
-    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs50.readFileSync)(file, "utf8")));
+    const parsed = quotaTelemetryFileSchema.safeParse(JSON.parse((0, import_fs49.readFileSync)(file, "utf8")));
     return parsed.success ? parsed.data : quotaTelemetryFileSchema.parse({});
   } catch {
     return quotaTelemetryFileSchema.parse({});
@@ -82895,7 +82989,7 @@ function specExcerptFor(workspace, specName, maxChars) {
       if (file === void 0) continue;
       try {
         parts.push(`--- ${kind} ---
-${(0, import_fs44.readFileSync)(file.path, "utf8")}`);
+${(0, import_fs43.readFileSync)(file.path, "utf8")}`);
       } catch {
       }
     }
@@ -82936,7 +83030,6 @@ async function driveJob(deps4, jobId, options = {}) {
       return { stop: { kind: "final", status: job.status }, job };
     }
   }
-  const probeCache = { probe: void 0 };
   const localManager = createLocalManager(deps4.config, (event) => {
     emit22("local-model", `${event.type}: ${event.detail}`);
     if (event.type === "ready") {
@@ -83023,7 +83116,6 @@ async function driveJob(deps4, jobId, options = {}) {
         case "RUN_ROLE": {
           const outcome = await handleRoleDecision(deps4, jobId, decision, {
             localManager,
-            probeCache,
             signal,
             emit: emit22
           });
@@ -83422,6 +83514,7 @@ async function driveJob(deps4, jobId, options = {}) {
           }) : mission !== void 0 ? await driveObjective({
             workspace: deps4.workspace,
             config: deps4.config,
+            registry: deps4.registry,
             jobId,
             specName: job.specName,
             node,
@@ -83431,7 +83524,6 @@ async function driveJob(deps4, jobId, options = {}) {
             allowDirty,
             runnerProfile: decision.worker.runnerProfile,
             localManager,
-            probeCache,
             ...deps4.clock !== void 0 ? { clock: deps4.clock } : {},
             ...deps4.idFactory !== void 0 ? { idFactory: deps4.idFactory } : {},
             ...signal !== void 0 ? { signal } : {},
@@ -83863,7 +83955,7 @@ function buildCriteriaEvidence(input) {
   const normalized = input.changedPaths.map((entry2) => entry2.replaceAll("\\", "/"));
   const existing = /* @__PURE__ */ new Set();
   for (const changed of normalized) {
-    if ((0, import_fs44.existsSync)(import_path46.default.join(input.workspaceRoot, changed))) existing.add(changed);
+    if ((0, import_fs43.existsSync)(import_path45.default.join(input.workspaceRoot, changed))) existing.add(changed);
   }
   return {
     existingPaths: existing,
@@ -84473,7 +84565,7 @@ async function handleRoleDecision(deps4, jobId, decision, runtime) {
         code: "LARGE_WORKER_FAILED",
         message: `The large-agent ${role} failed twice: ${result.problem.slice(0, 500)}`,
         remediation: [
-          "Check the Claude Code installation with `specbridge runner doctor claude-code`.",
+          `Check runner profile "${decision.worker.runnerProfile ?? deps4.config.defaultRunner}" with \`specbridge runner doctor ${decision.worker.runnerProfile ?? deps4.config.defaultRunner}\`.`,
           // The excerpt is the whole point of the remediation. A job blocked
           // on "the response is not a single valid JSON document" with
           // nothing retained leaves an operator a message and no evidence,
@@ -84608,15 +84700,14 @@ async function runRole(deps4, jobId, role, decision, packet, runtime) {
   const result = await runLargeRole({
     workspace: deps4.workspace,
     config: deps4.config,
+    registry: deps4.registry,
     runnerProfile: decision.worker.runnerProfile ?? deps4.config.defaultRunner,
     role,
     packet,
-    scratchDir: import_path46.default.join(jobDir(deps4.workspace, jobId), "scratch"),
+    scratchDir: import_path45.default.join(jobDir(deps4.workspace, jobId), "scratch"),
     timeoutMs: 6e5,
-    signal: runtime.signal,
-    cachedProbe: runtime.probeCache.probe
+    signal: runtime.signal
   });
-  if (result.probe !== void 0) runtime.probeCache.probe = result.probe;
   return result;
 }
 async function applyRoleOutput(deps4, jobId, role, result, context, node, activePlan) {
@@ -84954,17 +85045,17 @@ async function git22(cwd, argv2, timeoutMs = GIT_TIMEOUT_MS22) {
   return { ok: result.status === "ok", stdout: result.stdout, stderr: result.stderr };
 }
 function seedSidecar(source, targetRoot, specNames) {
-  const sidecar = import_path56.default.join(targetRoot, ".specbridge");
-  (0, import_fs51.mkdirSync)(sidecar, { recursive: true });
-  const config2 = import_path56.default.join(source.sidecarDir, "config.json");
-  if ((0, import_fs51.existsSync)(config2)) (0, import_fs51.copyFileSync)(config2, import_path56.default.join(sidecar, "config.json"));
-  const stateDir = import_path56.default.join(source.sidecarDir, "state", "specs");
-  if (!(0, import_fs51.existsSync)(stateDir)) return;
-  const targetState = import_path56.default.join(sidecar, "state", "specs");
-  (0, import_fs51.mkdirSync)(targetState, { recursive: true });
+  const sidecar = import_path54.default.join(targetRoot, ".specbridge");
+  (0, import_fs50.mkdirSync)(sidecar, { recursive: true });
+  const config2 = import_path54.default.join(source.sidecarDir, "config.json");
+  if ((0, import_fs50.existsSync)(config2)) (0, import_fs50.copyFileSync)(config2, import_path54.default.join(sidecar, "config.json"));
+  const stateDir = import_path54.default.join(source.sidecarDir, "state", "specs");
+  if (!(0, import_fs50.existsSync)(stateDir)) return;
+  const targetState = import_path54.default.join(sidecar, "state", "specs");
+  (0, import_fs50.mkdirSync)(targetState, { recursive: true });
   for (const name of new Set(specNames)) {
-    const file = import_path56.default.join(stateDir, `${name}.json`);
-    if ((0, import_fs51.existsSync)(file)) (0, import_fs51.copyFileSync)(file, import_path56.default.join(targetState, `${name}.json`));
+    const file = import_path54.default.join(stateDir, `${name}.json`);
+    if ((0, import_fs50.existsSync)(file)) (0, import_fs50.copyFileSync)(file, import_path54.default.join(targetState, `${name}.json`));
   }
 }
 function syntheticNode(evaluationCase) {
@@ -84992,8 +85083,8 @@ async function evaluateLocalRuntime(input) {
   const modes = input.modes ?? ["DIRECT_MODEL", "HARNESS"];
   const binding = resolveLocalHarnessBinding(input.config);
   const harnessProfile = input.harnessProfile ?? binding.profileName ?? void 0;
-  const workRoot = input.workRoot ?? import_path56.default.join(input.workspace.sidecarDir, "local-runtime-eval");
-  (0, import_fs51.mkdirSync)(workRoot, { recursive: true });
+  const workRoot = input.workRoot ?? import_path54.default.join(input.workspace.sidecarDir, "local-runtime-eval");
+  (0, import_fs50.mkdirSync)(workRoot, { recursive: true });
   const head = await git22(input.workspace.rootDir, ["rev-parse", "HEAD"]);
   if (!head.ok) {
     throw new OrchestrationError(
@@ -85052,7 +85143,7 @@ async function evaluateLocalRuntime(input) {
 }
 async function runArm(options) {
   const { input, evaluationCase, mode, workRoot } = options;
-  const armDir = import_path56.default.join(
+  const armDir = import_path54.default.join(
     workRoot,
     `${evaluationCase.caseId}-${mode === "HARNESS" ? "harness" : "direct"}`.replace(
       /[^A-Za-z0-9._-]/g,
@@ -85083,9 +85174,9 @@ async function runArm(options) {
   if (mode === "HARNESS" && options.harnessProfile === void 0) {
     return unavailable("no harness profile is bound or configured for the harness arm");
   }
-  if ((0, import_fs51.existsSync)(armDir)) {
+  if ((0, import_fs50.existsSync)(armDir)) {
     await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
-    (0, import_fs51.rmSync)(armDir, { recursive: true, force: true });
+    (0, import_fs50.rmSync)(armDir, { recursive: true, force: true });
   }
   const added = await git22(
     input.workspace.rootDir,
@@ -85161,7 +85252,7 @@ async function runArm(options) {
     if (input.keepWorktrees !== true) {
       await git22(input.workspace.rootDir, ["worktree", "remove", "--force", armDir]);
       try {
-        (0, import_fs51.rmSync)(armDir, { recursive: true, force: true });
+        (0, import_fs50.rmSync)(armDir, { recursive: true, force: true });
       } catch {
       }
       await git22(input.workspace.rootDir, ["worktree", "prune"]);
@@ -85879,46 +85970,46 @@ function assertRecordId4(kind, id) {
 function qualificationDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path57.default.join(workspace.rootDir, ".specbridge", "qualification")
+    import_path55.default.join(workspace.rootDir, ".specbridge", "qualification")
   );
 }
 function dogfoodRunDir(workspace, runId) {
   assertRecordId4("dogfood run", runId);
-  return assertInsideWorkspace(workspace.rootDir, import_path57.default.join(qualificationDir(workspace), runId));
+  return assertInsideWorkspace(workspace.rootDir, import_path55.default.join(qualificationDir(workspace), runId));
 }
 function runFile(workspace, runId) {
-  return assertInsideWorkspace(workspace.rootDir, import_path57.default.join(dogfoodRunDir(workspace, runId), "run.json"));
+  return assertInsideWorkspace(workspace.rootDir, import_path55.default.join(dogfoodRunDir(workspace, runId), "run.json"));
 }
 function recordDir2(workspace, runId, kind) {
-  return assertInsideWorkspace(workspace.rootDir, import_path57.default.join(dogfoodRunDir(workspace, runId), kind));
+  return assertInsideWorkspace(workspace.rootDir, import_path55.default.join(dogfoodRunDir(workspace, runId), kind));
 }
 function recordFile2(workspace, runId, kind, id) {
   assertRecordId4(kind, id);
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path57.default.join(recordDir2(workspace, runId, kind), `${id}.json`)
+    import_path55.default.join(recordDir2(workspace, runId, kind), `${id}.json`)
   );
 }
 function writeRecord2(file, value) {
-  (0, import_fs52.mkdirSync)(import_path57.default.dirname(file), { recursive: true });
+  (0, import_fs51.mkdirSync)(import_path55.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readRecord2(file, parse3) {
-  if (!(0, import_fs52.existsSync)(file)) return void 0;
+  if (!(0, import_fs51.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs52.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs51.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function listRecords2(workspace, runId, kind, parse3) {
   const dir = recordDir2(workspace, runId, kind);
-  if (!(0, import_fs52.existsSync)(dir)) return [];
+  if (!(0, import_fs51.existsSync)(dir)) return [];
   const records = [];
-  for (const entry2 of (0, import_fs52.readdirSync)(dir).sort()) {
+  for (const entry2 of (0, import_fs51.readdirSync)(dir).sort()) {
     if (!entry2.endsWith(".json")) continue;
-    const record32 = readRecord2(import_path57.default.join(dir, entry2), parse3);
+    const record32 = readRecord2(import_path55.default.join(dir, entry2), parse3);
     if (record32 !== void 0) records.push(record32);
   }
   return records;
@@ -85945,9 +86036,9 @@ function requireDogfoodRun(workspace, runId) {
 }
 function listDogfoodRuns(workspace) {
   const dir = qualificationDir(workspace);
-  if (!(0, import_fs52.existsSync)(dir)) return [];
+  if (!(0, import_fs51.existsSync)(dir)) return [];
   const runs = [];
-  for (const entry2 of (0, import_fs52.readdirSync)(dir, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs51.readdirSync)(dir, { withFileTypes: true })) {
     if (!entry2.isDirectory()) continue;
     if (!ID_PATTERN9.test(entry2.name)) continue;
     const run = readDogfoodRun(workspace, entry2.name);
@@ -85984,9 +86075,9 @@ function writeQualificationArtifact(workspace, runId, name, contents) {
   }
   const file = assertInsideWorkspace(
     workspace.rootDir,
-    import_path57.default.join(recordDir2(workspace, runId, "reports"), name)
+    import_path55.default.join(recordDir2(workspace, runId, "reports"), name)
   );
-  (0, import_fs52.mkdirSync)(import_path57.default.dirname(file), { recursive: true });
+  (0, import_fs51.mkdirSync)(import_path55.default.dirname(file), { recursive: true });
   writeFileAtomic(file, contents);
   return file;
 }
@@ -85996,7 +86087,7 @@ function qualificationArtifactPath(workspace, runId, name) {
   }
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path57.default.join(recordDir2(workspace, runId, "reports"), name)
+    import_path55.default.join(recordDir2(workspace, runId, "reports"), name)
   );
 }
 var PROFILE_ORDER = ["offline", "local", "subscription", "full"];
@@ -86682,7 +86773,7 @@ function runPreflight(input) {
         "Offline qualification does not need a target: run it with --profile offline."
       ])
     );
-  } else if (!(0, import_fs53.existsSync)(target.repositoryPath) || !(0, import_fs53.statSync)(target.repositoryPath).isDirectory()) {
+  } else if (!(0, import_fs52.existsSync)(target.repositoryPath) || !(0, import_fs52.statSync)(target.repositoryPath).isDirectory()) {
     findings2.push(
       refuse2(
         "target.repository",
@@ -86878,7 +86969,7 @@ function normalizeTargetPath(value) {
   if (value === null || value === void 0) return null;
   const trimmed = value.trim();
   if (trimmed.length === 0) return null;
-  return import_path58.default.resolve(trimmed);
+  return import_path56.default.resolve(trimmed);
 }
 function add(current, reported) {
   if (reported === null || reported === void 0) return current;
@@ -91000,20 +91091,20 @@ var import_node_fs6 = require("fs");
 var import_node_path8 = __toESM(require("path"), 1);
 
 // ../../packages/drift/dist/index.js
-var import_fs54 = require("fs");
-var import_path59 = __toESM(require("path"), 1);
+var import_fs53 = require("fs");
+var import_path57 = __toESM(require("path"), 1);
 var import_picomatch = __toESM(require_picomatch2(), 1);
+var import_fs54 = require("fs");
+var import_path58 = __toESM(require("path"), 1);
 var import_fs55 = require("fs");
-var import_path60 = __toESM(require("path"), 1);
+var import_path59 = __toESM(require("path"), 1);
 var import_fs56 = require("fs");
-var import_path61 = __toESM(require("path"), 1);
+var import_path60 = __toESM(require("path"), 1);
 var import_fs57 = require("fs");
-var import_path62 = __toESM(require("path"), 1);
+var import_path61 = __toESM(require("path"), 1);
 var import_fs58 = require("fs");
-var import_path63 = __toESM(require("path"), 1);
-var import_fs59 = require("fs");
 var import_crypto25 = require("crypto");
-var import_path64 = __toESM(require("path"), 1);
+var import_path62 = __toESM(require("path"), 1);
 var taskEvidenceSchema = external_exports.object({
   taskId: external_exports.string().min(1),
   status: external_exports.enum(["recorded", "verified", "rejected"]),
@@ -91114,24 +91205,24 @@ var verificationPolicySchema = external_exports.object({
   }
 });
 function policyDir(workspace) {
-  return import_path59.default.join(workspace.sidecarDir, "policies");
+  return import_path57.default.join(workspace.sidecarDir, "policies");
 }
 function policyPath(workspace, specName) {
-  const resolved2 = import_path59.default.resolve(policyDir(workspace), `${specName}.json`);
-  const relative = import_path59.default.relative(workspace.rootDir, resolved2);
-  if (relative.startsWith("..") || import_path59.default.isAbsolute(relative)) {
-    return import_path59.default.join(policyDir(workspace), "invalid-spec-name.json");
+  const resolved2 = import_path57.default.resolve(policyDir(workspace), `${specName}.json`);
+  const relative = import_path57.default.relative(workspace.rootDir, resolved2);
+  if (relative.startsWith("..") || import_path57.default.isAbsolute(relative)) {
+    return import_path57.default.join(policyDir(workspace), "invalid-spec-name.json");
   }
   return resolved2;
 }
 function readVerificationPolicy(workspace, specName, explicitPath) {
-  const filePath = explicitPath !== void 0 ? import_path59.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
-  if (!(0, import_fs54.existsSync)(filePath)) {
+  const filePath = explicitPath !== void 0 ? import_path57.default.resolve(workspace.rootDir, explicitPath) : policyPath(workspace, specName);
+  if (!(0, import_fs53.existsSync)(filePath)) {
     return { path: filePath, exists: false, diagnostics: [] };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs54.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs53.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       path: filePath,
@@ -91194,7 +91285,7 @@ function resolveEffectivePolicy(workspace, specName, options = {}) {
   const storedMode = policy?.mode ?? "advisory";
   const strictFromCli = options.strict === true && storedMode !== "strict";
   const mode = options.strict === true ? "strict" : storedMode;
-  const workspaceRelativePolicyPath = import_path59.default.relative(workspace.rootDir, read.path).split(import_path59.default.sep).join("/");
+  const workspaceRelativePolicyPath = import_path57.default.relative(workspace.rootDir, read.path).split(import_path57.default.sep).join("/");
   return {
     specName,
     mode,
@@ -91355,33 +91446,33 @@ function mergeNumstat(files, stats) {
 function sniffBinary(absolutePath) {
   let fd;
   try {
-    fd = (0, import_fs55.openSync)(absolutePath, "r");
+    fd = (0, import_fs54.openSync)(absolutePath, "r");
     const buffer = Buffer.alloc(8e3);
-    const bytesRead = (0, import_fs55.readSync)(fd, buffer, 0, buffer.length, 0);
+    const bytesRead = (0, import_fs54.readSync)(fd, buffer, 0, buffer.length, 0);
     return buffer.subarray(0, bytesRead).includes(0);
   } catch {
     return false;
   } finally {
-    if (fd !== void 0) (0, import_fs55.closeSync)(fd);
+    if (fd !== void 0) (0, import_fs54.closeSync)(fd);
   }
 }
 function flagSymlinkEscapes(repoRoot, files) {
   const resolvedRoot = (() => {
     try {
-      return (0, import_fs55.realpathSync)(repoRoot);
+      return (0, import_fs54.realpathSync)(repoRoot);
     } catch {
-      return import_path60.default.resolve(repoRoot);
+      return import_path58.default.resolve(repoRoot);
     }
   })();
   for (const file of files) {
     if (file.changeType === "deleted") continue;
-    const absolute = import_path60.default.join(repoRoot, file.path.split("/").join(import_path60.default.sep));
+    const absolute = import_path58.default.join(repoRoot, file.path.split("/").join(import_path58.default.sep));
     try {
-      const stats = (0, import_fs55.lstatSync)(absolute);
+      const stats = (0, import_fs54.lstatSync)(absolute);
       if (!stats.isSymbolicLink()) continue;
-      const target = (0, import_fs55.realpathSync)(absolute);
-      const relative = import_path60.default.relative(resolvedRoot, target);
-      if (relative.startsWith("..") || import_path60.default.isAbsolute(relative)) {
+      const target = (0, import_fs54.realpathSync)(absolute);
+      const relative = import_path58.default.relative(resolvedRoot, target);
+      if (relative.startsWith("..") || import_path58.default.isAbsolute(relative)) {
         file.symlinkOutsideRepository = true;
       }
     } catch {
@@ -91509,7 +91600,7 @@ async function resolveComparison(repoRoot, request, options = {}) {
     const known = new Set(files.map((file) => file.path));
     for (const token of untracked.stdout.split("\0")) {
       if (token.length === 0 || known.has(token)) continue;
-      const absolute = import_path60.default.join(repoRoot, token.split("/").join(import_path60.default.sep));
+      const absolute = import_path58.default.join(repoRoot, token.split("/").join(import_path58.default.sep));
       files.push({
         path: token,
         changeType: "untracked",
@@ -91589,9 +91680,9 @@ function specMatchReasons(specName, policy, validEvidencePaths, designPathRefere
 function readSpecEvidenceRecords(workspace, specName) {
   const byTask = /* @__PURE__ */ new Map();
   let invalidRecordCount = 0;
-  const specDir = import_path61.default.join(workspace.sidecarDir, "evidence", specName);
-  if ((0, import_fs56.existsSync)(specDir)) {
-    const taskDirs = (0, import_fs56.readdirSync)(specDir, { withFileTypes: true }).filter((entry2) => entry2.isDirectory()).map((entry2) => entry2.name).sort((a2, b) => a2.localeCompare(b, "en"));
+  const specDir = import_path59.default.join(workspace.sidecarDir, "evidence", specName);
+  if ((0, import_fs55.existsSync)(specDir)) {
+    const taskDirs = (0, import_fs55.readdirSync)(specDir, { withFileTypes: true }).filter((entry2) => entry2.isDirectory()).map((entry2) => entry2.name).sort((a2, b) => a2.localeCompare(b, "en"));
     for (const taskDir of taskDirs) {
       const { records, diagnostics } = listTaskEvidence(workspace, specName, taskDir);
       invalidRecordCount += diagnostics.length;
@@ -91638,7 +91729,7 @@ async function buildSpecVerificationContext(options) {
     }
     if (effective("tasks") && tasksStage !== void 0) {
       const planHash2 = typeof tasksStage.approvedPlanHash === "string" ? tasksStage.approvedPlanHash : tryTaskPlanHashOfFile(
-        import_path61.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path61.default.sep))
+        import_path59.default.join(workspace.rootDir, tasksStage.file.split("/").join(import_path59.default.sep))
       );
       if (planHash2 !== void 0) approved.tasksPlanHash = planHash2;
     }
@@ -91866,7 +91957,7 @@ async function evaluateGlobalRules(rules, context) {
   return { diagnostics, disabledRules };
 }
 function repoRelative(workspace, absolutePath) {
-  return import_path62.default.relative(workspace.rootDir, absolutePath).split(import_path62.default.sep).join("/");
+  return import_path60.default.relative(workspace.rootDir, absolutePath).split(import_path60.default.sep).join("/");
 }
 function isSpecInfraPath(candidate) {
   return candidate === ".git" || candidate.startsWith(".git/") || candidate.startsWith(".kiro/") || candidate.startsWith(".specbridge/");
@@ -92547,14 +92638,14 @@ var sbv018 = {
     if (designDocument === void 0) return [];
     const designFile = designDocument.filePath;
     const designRepoPath = designFile !== void 0 ? repoRelative(context.workspace, designFile) : void 0;
-    const specDir = import_path62.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
+    const specDir = import_path60.default.join(context.workspace.rootDir, ".kiro", "specs", context.specName);
     return context.traceability.designPathReferences.filter((reference) => !reference.isGlob).filter((reference) => {
-      const fromRoot = import_path62.default.join(
+      const fromRoot = import_path60.default.join(
         context.workspace.rootDir,
-        reference.path.split("/").join(import_path62.default.sep)
+        reference.path.split("/").join(import_path60.default.sep)
       );
-      const fromSpecDir = import_path62.default.join(specDir, reference.path.split("/").join(import_path62.default.sep));
-      return !(0, import_fs57.existsSync)(fromRoot) && !(0, import_fs57.existsSync)(fromSpecDir);
+      const fromSpecDir = import_path60.default.join(specDir, reference.path.split("/").join(import_path60.default.sep));
+      return !(0, import_fs56.existsSync)(fromRoot) && !(0, import_fs56.existsSync)(fromSpecDir);
     }).map(
       (reference) => makeDiagnostic({
         rule: this,
@@ -92801,9 +92892,9 @@ function loadSpecMatchingInfo(workspace, folder, options) {
     }
   }
   const evidencePaths = /* @__PURE__ */ new Set();
-  const evidenceDir2 = import_path63.default.join(workspace.sidecarDir, "evidence", folder.name);
-  if ((0, import_fs58.existsSync)(evidenceDir2)) {
-    for (const entry2 of (0, import_fs59.readdirSync)(evidenceDir2, { withFileTypes: true })) {
+  const evidenceDir2 = import_path61.default.join(workspace.sidecarDir, "evidence", folder.name);
+  if ((0, import_fs57.existsSync)(evidenceDir2)) {
+    for (const entry2 of (0, import_fs58.readdirSync)(evidenceDir2, { withFileTypes: true })) {
       if (!entry2.isDirectory()) continue;
       const { records } = listTaskEvidence(workspace, folder.name, entry2.name);
       for (const record5 of records) {
@@ -92912,8 +93003,8 @@ async function verifySpecs(request) {
   let artifactsDir;
   const ensureArtifactsDir = () => {
     if (artifactsDir === void 0) {
-      const base = request.reportsDir ?? import_path64.default.join(workspace.sidecarDir, "reports");
-      artifactsDir = import_path64.default.join(base, verificationId);
+      const base = request.reportsDir ?? import_path62.default.join(workspace.sidecarDir, "reports");
+      artifactsDir = import_path62.default.join(base, verificationId);
     }
     return artifactsDir;
   };
@@ -92936,8 +93027,8 @@ async function verifySpecs(request) {
       onCommandFinished: (result, stdout, stderr) => {
         const dir = ensureArtifactsDir();
         const safeName = result.name.replace(/[^A-Za-z0-9._-]+/g, "-");
-        writeFileAtomic(import_path64.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
-        writeFileAtomic(import_path64.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
+        writeFileAtomic(import_path62.default.join(dir, "commands", `${safeName}.stdout.log`), stdout);
+        writeFileAtomic(import_path62.default.join(dir, "commands", `${safeName}.stderr.log`), stderr);
       }
     } : {}
   }) : { mode: "none", commands: [], missingRequired: [] };
@@ -93088,7 +93179,7 @@ async function verifySpecs(request) {
   verificationReportSchema.parse(report);
   if (persistArtifacts && artifactsDir !== void 0) {
     writeFileAtomic(
-      import_path64.default.join(artifactsDir, "report.json"),
+      import_path62.default.join(artifactsDir, "report.json"),
       `${JSON.stringify(report, null, 2)}
 `
     );
@@ -93197,18 +93288,18 @@ function resolveExitCode(report, comparison, commands, failOn) {
 }
 
 // ../../packages/templates/dist/index.js
+var import_fs59 = require("fs");
+var import_path63 = __toESM(require("path"), 1);
 var import_fs60 = require("fs");
-var import_path65 = __toESM(require("path"), 1);
+var import_path64 = __toESM(require("path"), 1);
 var import_fs61 = require("fs");
+var import_path65 = __toESM(require("path"), 1);
 var import_path66 = __toESM(require("path"), 1);
 var import_fs62 = require("fs");
 var import_path67 = __toESM(require("path"), 1);
-var import_path68 = __toESM(require("path"), 1);
 var import_fs63 = require("fs");
-var import_path69 = __toESM(require("path"), 1);
-var import_fs64 = require("fs");
 var import_os = require("os");
-var import_path70 = __toESM(require("path"), 1);
+var import_path68 = __toESM(require("path"), 1);
 var SPECBRIDGE_VERSION = "1.0.0";
 var TEMPLATE_ERROR_CODES = {
   SBT001: "template not found",
@@ -94037,11 +94128,11 @@ function readTemplatePackDirectory(dir) {
         { path: currentDir }
       );
     }
-    const entries = (0, import_fs60.readdirSync)(currentDir, { withFileTypes: true }).sort(
+    const entries = (0, import_fs59.readdirSync)(currentDir, { withFileTypes: true }).sort(
       (a2, b) => a2.name.localeCompare(b.name, "en")
     );
     for (const entry2 of entries) {
-      const entryPath = import_path65.default.join(currentDir, entry2.name);
+      const entryPath = import_path63.default.join(currentDir, entry2.name);
       const entryRelative = relative === "" ? entry2.name : `${relative}/${entry2.name}`;
       const stat = statNoFollow(entryPath);
       if (stat.isSymbolicLink()) {
@@ -94093,7 +94184,7 @@ function readTemplatePackDirectory(dir) {
           { path: dir }
         );
       }
-      const buffer = (0, import_fs60.readFileSync)(entryPath);
+      const buffer = (0, import_fs59.readFileSync)(entryPath);
       const text15 = buffer.toString("utf8");
       if (!Buffer.from(text15, "utf8").equals(buffer)) {
         throw new TemplateError(
@@ -94119,7 +94210,7 @@ function readTemplatePackDirectory(dir) {
 }
 function statNoFollow(target) {
   try {
-    return (0, import_fs60.lstatSync)(target);
+    return (0, import_fs59.lstatSync)(target);
   } catch (cause) {
     throw new TemplateError(
       "SBT007",
@@ -94483,7 +94574,7 @@ var BUILTIN_TEMPLATE_PACKS = [
   }
 ];
 function projectTemplatesDir(workspace) {
-  return import_path66.default.join(workspace.sidecarDir, "templates");
+  return import_path64.default.join(workspace.sidecarDir, "templates");
 }
 function builtinEntries(options) {
   const entries = [];
@@ -94508,11 +94599,11 @@ function builtinEntries(options) {
 function projectEntries(workspace, options, diagnostics) {
   if (workspace === void 0) return [];
   const dir = projectTemplatesDir(workspace);
-  if (!(0, import_fs61.existsSync)(dir)) return [];
+  if (!(0, import_fs60.existsSync)(dir)) return [];
   const entries = [];
   let names;
   try {
-    names = (0, import_fs61.readdirSync)(dir, { withFileTypes: true }).filter((entry2) => entry2.isDirectory() && !entry2.isSymbolicLink()).map((entry2) => entry2.name).sort((a2, b) => a2.localeCompare(b, "en"));
+    names = (0, import_fs60.readdirSync)(dir, { withFileTypes: true }).filter((entry2) => entry2.isDirectory() && !entry2.isSymbolicLink()).map((entry2) => entry2.name).sort((a2, b) => a2.localeCompare(b, "en"));
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -94522,7 +94613,7 @@ function projectEntries(workspace, options, diagnostics) {
     return [];
   }
   for (const name of names) {
-    const packDir = import_path66.default.join(dir, name);
+    const packDir = import_path64.default.join(dir, name);
     let pack;
     try {
       const data = readTemplatePackDirectory(packDir);
@@ -94766,7 +94857,7 @@ var templateRecordSchema = external_exports.discriminatedUnion("type", [
   templateScaffoldRecordSchema
 ]);
 function templateRecordsPath(workspace) {
-  return import_path67.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
+  return import_path65.default.join(workspace.sidecarDir, TEMPLATE_RECORDS_FILE_NAME);
 }
 var recordCounter = 0;
 function newTemplateRecordId(clock = systemClock) {
@@ -94777,8 +94868,8 @@ function appendTemplateRecord(workspace, record5) {
   const validated = templateRecordSchema.parse(record5);
   const filePath = templateRecordsPath(workspace);
   try {
-    (0, import_fs62.mkdirSync)(workspace.sidecarDir, { recursive: true });
-    (0, import_fs62.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs61.mkdirSync)(workspace.sidecarDir, { recursive: true });
+    (0, import_fs61.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append template record to", filePath, cause);
@@ -94787,10 +94878,10 @@ function appendTemplateRecord(workspace, record5) {
 function readTemplateRecords(workspace) {
   const filePath = templateRecordsPath(workspace);
   const diagnostics = [];
-  if (!(0, import_fs62.existsSync)(filePath)) return { records: [], diagnostics };
+  if (!(0, import_fs61.existsSync)(filePath)) return { records: [], diagnostics };
   let text15;
   try {
-    text15 = (0, import_fs62.readFileSync)(filePath, "utf8");
+    text15 = (0, import_fs61.readFileSync)(filePath, "utf8");
   } catch (cause) {
     diagnostics.push({
       severity: "warning",
@@ -94989,7 +95080,7 @@ function planTemplateApplication(workspace, catalog, request, clock = systemCloc
   };
 }
 function toPosix2(relative) {
-  return relative.split(import_path68.default.sep).join("/");
+  return relative.split(import_path66.default.sep).join("/");
 }
 function executeTemplateApplication(workspace, plan, clock = systemClock, recordId) {
   let creation;
@@ -95019,15 +95110,15 @@ function executeTemplateApplication(workspace, plan, clock = systemClock, record
     })),
     variableNames: plan.variableNames,
     createdPaths: [
-      ...creation.writtenFiles.map((file) => toPosix2(import_path68.default.relative(workspace.rootDir, file))),
-      toPosix2(import_path68.default.relative(workspace.rootDir, creation.statePath))
+      ...creation.writtenFiles.map((file) => toPosix2(import_path66.default.relative(workspace.rootDir, file))),
+      toPosix2(import_path66.default.relative(workspace.rootDir, creation.statePath))
     ]
   };
   appendTemplateRecord(workspace, record5);
   return { plan, creation, recordId: id };
 }
 function planTemplateInstall(workspace, catalog, request) {
-  const sourceDir = import_path69.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
+  const sourceDir = import_path67.default.resolve(request.cwd ?? workspace.rootDir, request.sourcePath);
   try {
     assertInsideWorkspace(workspace.rootDir, sourceDir);
   } catch (cause) {
@@ -95053,8 +95144,8 @@ function planTemplateInstall(workspace, catalog, request) {
     );
   }
   const templateId = pack.manifest.id;
-  const targetDir = import_path69.default.join(projectTemplatesDir(workspace), templateId);
-  if ((0, import_fs63.existsSync)(targetDir)) {
+  const targetDir = import_path67.default.join(projectTemplatesDir(workspace), templateId);
+  if ((0, import_fs62.existsSync)(targetDir)) {
     throw new TemplateError(
       "SBT021",
       `Template "project:${templateId}" is already installed at ${targetDir}.`,
@@ -95080,16 +95171,16 @@ function planTemplateInstall(workspace, catalog, request) {
   };
 }
 function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path69.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path69.default.join(
+  const tmpParent = import_path67.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path67.default.join(
     tmpParent,
     `template-install-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   try {
-    (0, import_fs63.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs62.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.pack.files) {
-      const target = import_path69.default.join(tempDir, relative);
-      (0, import_fs63.mkdirSync)(import_path69.default.dirname(target), { recursive: true });
+      const target = import_path67.default.join(tempDir, relative);
+      (0, import_fs62.mkdirSync)(import_path67.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
     const copied = loadTemplatePack(readTemplatePackDirectory(tempDir));
@@ -95101,8 +95192,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.sourceDir }
       );
     }
-    (0, import_fs63.mkdirSync)(import_path69.default.dirname(plan.targetDir), { recursive: true });
-    if ((0, import_fs63.existsSync)(plan.targetDir)) {
+    (0, import_fs62.mkdirSync)(import_path67.default.dirname(plan.targetDir), { recursive: true });
+    if ((0, import_fs62.existsSync)(plan.targetDir)) {
       throw new TemplateError(
         "SBT021",
         `Template "project:${plan.templateId}" was installed by another process.`,
@@ -95110,11 +95201,11 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
         { path: plan.targetDir }
       );
     }
-    (0, import_fs63.renameSync)(tempDir, plan.targetDir);
+    (0, import_fs62.renameSync)(tempDir, plan.targetDir);
   } finally {
-    (0, import_fs63.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs62.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs63.rmdirSync)(tmpParent);
+      (0, import_fs62.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -95129,8 +95220,8 @@ function executeTemplateInstall(workspace, plan, clock = systemClock, recordId) 
     templateId: plan.templateId,
     templateVersion: plan.templateVersion,
     manifestHash: plan.manifestHash,
-    sourcePath: import_path69.default.relative(workspace.rootDir, plan.sourceDir).split(import_path69.default.sep).join("/"),
-    installedPath: import_path69.default.relative(workspace.rootDir, plan.targetDir).split(import_path69.default.sep).join("/")
+    sourcePath: import_path67.default.relative(workspace.rootDir, plan.sourceDir).split(import_path67.default.sep).join("/"),
+    installedPath: import_path67.default.relative(workspace.rootDir, plan.targetDir).split(import_path67.default.sep).join("/")
   });
   return { plan, installedPath: plan.targetDir, recordId: id };
 }
@@ -95160,10 +95251,10 @@ function planTemplateUninstall(workspace, rawReference) {
       { reference: rawReference }
     );
   }
-  const dir = import_path69.default.join(projectTemplatesDir(workspace), reference.id);
+  const dir = import_path67.default.join(projectTemplatesDir(workspace), reference.id);
   let stat;
   try {
-    stat = (0, import_fs63.lstatSync)(dir);
+    stat = (0, import_fs62.lstatSync)(dir);
   } catch {
     throw new TemplateError(
       "SBT001",
@@ -95183,18 +95274,18 @@ function planTemplateUninstall(workspace, rawReference) {
   return { templateId: reference.id, ref: `project:${reference.id}`, dir };
 }
 function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId) {
-  const tmpParent = import_path69.default.join(workspace.sidecarDir, "tmp");
-  const tempDir = import_path69.default.join(
+  const tmpParent = import_path67.default.join(workspace.sidecarDir, "tmp");
+  const tempDir = import_path67.default.join(
     tmpParent,
     `template-uninstall-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
-  (0, import_fs63.mkdirSync)(tmpParent, { recursive: true });
-  (0, import_fs63.renameSync)(plan.dir, tempDir);
+  (0, import_fs62.mkdirSync)(tmpParent, { recursive: true });
+  (0, import_fs62.renameSync)(plan.dir, tempDir);
   try {
-    (0, import_fs63.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs62.rmSync)(tempDir, { recursive: true, force: true });
   } finally {
     try {
-      (0, import_fs63.rmdirSync)(tmpParent);
+      (0, import_fs62.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -95207,7 +95298,7 @@ function executeTemplateUninstall(workspace, plan, clock = systemClock, recordId
     result: "ok",
     templateRef: plan.ref,
     templateId: plan.templateId,
-    uninstalledPath: import_path69.default.relative(workspace.rootDir, plan.dir).split(import_path69.default.sep).join("/")
+    uninstalledPath: import_path67.default.relative(workspace.rootDir, plan.dir).split(import_path67.default.sep).join("/")
   });
   return { plan, recordId: id };
 }
@@ -95293,10 +95384,10 @@ The built-in variables \`specName\`, \`title\`, \`description\`, \`kind\`, and
 
 \`\`\`bash
 # From the directory containing this template pack:
-specbridge template validate ./${import_path70.default.basename(request.outputPath)}
+specbridge template validate ./${import_path68.default.basename(request.outputPath)}
 
 # Then install it into a project for a real preview:
-specbridge template install ./${import_path70.default.basename(request.outputPath)}
+specbridge template install ./${import_path68.default.basename(request.outputPath)}
 specbridge template preview project:${request.templateId} --name example-spec
 \`\`\`
 
@@ -95516,9 +95607,9 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   if (new Set(modes).size !== modes.length) {
     throw new TemplateError("SBT015", "--modes contains duplicates.", "List each mode once.", {});
   }
-  const outputDir = import_path70.default.resolve(request.cwd, request.outputPath);
-  const relative = import_path70.default.relative(import_path70.default.resolve(request.cwd), outputDir);
-  if (relative.startsWith("..") || import_path70.default.isAbsolute(relative)) {
+  const outputDir = import_path68.default.resolve(request.cwd, request.outputPath);
+  const relative = import_path68.default.relative(import_path68.default.resolve(request.cwd), outputDir);
+  if (relative.startsWith("..") || import_path68.default.isAbsolute(relative)) {
     throw new TemplateError(
       "SBT007",
       `Scaffold output ${outputDir} is outside the current directory.`,
@@ -95526,7 +95617,7 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
       { path: outputDir }
     );
   }
-  if ((0, import_fs64.existsSync)(outputDir)) {
+  if ((0, import_fs63.existsSync)(outputDir)) {
     throw new TemplateError(
       "SBT025",
       `Scaffold output directory already exists: ${outputDir}.`,
@@ -95558,21 +95649,21 @@ ${idCheck.problems.map((p) => `  - ${p}`).join("\n")}`,
   return { templateId: request.templateId, kind: request.kind, outputDir, files };
 }
 function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId) {
-  const tmpParent = workspace !== void 0 ? import_path70.default.join(workspace.sidecarDir, "tmp") : import_path70.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
-  const tempDir = import_path70.default.join(
+  const tmpParent = workspace !== void 0 ? import_path68.default.join(workspace.sidecarDir, "tmp") : import_path68.default.join((0, import_os.tmpdir)(), "specbridge-scaffold");
+  const tempDir = import_path68.default.join(
     tmpParent,
     `template-scaffold-${plan.templateId}-${process.pid}-${Math.random().toString(36).slice(2, 8)}`
   );
   const writtenFiles = [];
   try {
-    (0, import_fs64.mkdirSync)(tempDir, { recursive: true });
+    (0, import_fs63.mkdirSync)(tempDir, { recursive: true });
     for (const [relative, content] of plan.files) {
-      const target = import_path70.default.join(tempDir, relative);
-      (0, import_fs64.mkdirSync)(import_path70.default.dirname(target), { recursive: true });
+      const target = import_path68.default.join(tempDir, relative);
+      (0, import_fs63.mkdirSync)(import_path68.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs64.mkdirSync)(import_path70.default.dirname(plan.outputDir), { recursive: true });
-    if ((0, import_fs64.existsSync)(plan.outputDir)) {
+    (0, import_fs63.mkdirSync)(import_path68.default.dirname(plan.outputDir), { recursive: true });
+    if ((0, import_fs63.existsSync)(plan.outputDir)) {
       throw new TemplateError(
         "SBT025",
         `Scaffold output directory was created by another process: ${plan.outputDir}.`,
@@ -95580,14 +95671,14 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
         { path: plan.outputDir }
       );
     }
-    (0, import_fs64.renameSync)(tempDir, plan.outputDir);
+    (0, import_fs63.renameSync)(tempDir, plan.outputDir);
     for (const relative of plan.files.keys()) {
-      writtenFiles.push(import_path70.default.join(plan.outputDir, relative));
+      writtenFiles.push(import_path68.default.join(plan.outputDir, relative));
     }
   } finally {
-    (0, import_fs64.rmSync)(tempDir, { recursive: true, force: true });
+    (0, import_fs63.rmSync)(tempDir, { recursive: true, force: true });
     try {
-      (0, import_fs64.rmdirSync)(tmpParent);
+      (0, import_fs63.rmdirSync)(tmpParent);
     } catch {
     }
   }
@@ -95602,7 +95693,7 @@ function executeTemplateScaffold(plan, workspace, clock = systemClock, recordId)
       result: "ok",
       templateId: plan.templateId,
       kind: plan.kind,
-      outputPath: import_path70.default.relative(workspace.rootDir, plan.outputDir).split(import_path70.default.sep).join("/")
+      outputPath: import_path68.default.relative(workspace.rootDir, plan.outputDir).split(import_path68.default.sep).join("/")
     });
   }
   return { plan, writtenFiles, recordId: id };
@@ -96519,26 +96610,26 @@ var TEMPLATE_PROVIDER_TEMPLATES_DIR = "templates";
 var MAX_TEMPLATE_PROVIDER_PACKS = 20;
 
 // ../../packages/extensions/dist/index.js
-var import_fs65 = require("fs");
-var import_path71 = __toESM(require("path"), 1);
+var import_fs64 = require("fs");
+var import_path69 = __toESM(require("path"), 1);
 var import_crypto27 = require("crypto");
-var import_fs66 = require("fs");
-var import_path72 = __toESM(require("path"), 1);
+var import_fs65 = require("fs");
+var import_path70 = __toESM(require("path"), 1);
 var import_child_process2 = require("child_process");
+var import_fs66 = require("fs");
+var import_path71 = __toESM(require("path"), 1);
 var import_fs67 = require("fs");
-var import_path73 = __toESM(require("path"), 1);
+var import_path72 = __toESM(require("path"), 1);
 var import_fs68 = require("fs");
-var import_path74 = __toESM(require("path"), 1);
+var import_path73 = __toESM(require("path"), 1);
 var import_fs69 = require("fs");
-var import_path75 = __toESM(require("path"), 1);
+var import_path74 = __toESM(require("path"), 1);
 var import_fs70 = require("fs");
-var import_path76 = __toESM(require("path"), 1);
+var import_path75 = __toESM(require("path"), 1);
 var import_fs71 = require("fs");
-var import_path77 = __toESM(require("path"), 1);
+var import_path76 = __toESM(require("path"), 1);
 var import_fs72 = require("fs");
-var import_path78 = __toESM(require("path"), 1);
-var import_fs73 = require("fs");
-var import_path79 = __toESM(require("path"), 1);
+var import_path77 = __toESM(require("path"), 1);
 var ExtensionError = class extends SpecBridgeError {
   extensionCode;
   /** Actionable next step, always present. */
@@ -97040,7 +97131,7 @@ var FORBIDDEN_LIFECYCLE_SCRIPTS = [
   "postuninstall"
 ];
 function readExtensionPackageDirectory(dir) {
-  const rootStat = (0, import_fs65.lstatSync)(dir, { throwIfNoEntry: false });
+  const rootStat = (0, import_fs64.lstatSync)(dir, { throwIfNoEntry: false });
   if (rootStat === void 0 || !rootStat.isDirectory()) {
     throw new ExtensionError(
       "SBE008",
@@ -97065,7 +97156,7 @@ function readExtensionPackageDirectory(dir) {
         "Flatten the package layout."
       );
     }
-    for (const entry2 of (0, import_fs65.readdirSync)(currentDir, { withFileTypes: true })) {
+    for (const entry2 of (0, import_fs64.readdirSync)(currentDir, { withFileTypes: true })) {
       const relativePath = relativePrefix === "" ? entry2.name : `${relativePrefix}/${entry2.name}`;
       if (entry2.isSymbolicLink()) {
         throw new ExtensionError(
@@ -97091,7 +97182,7 @@ function readExtensionPackageDirectory(dir) {
             "Remove the directory before validating or packaging."
           );
         }
-        walk(import_path71.default.join(currentDir, entry2.name), relativePath, depth + 1);
+        walk(import_path69.default.join(currentDir, entry2.name), relativePath, depth + 1);
         continue;
       }
       if (!entry2.isFile()) {
@@ -97108,7 +97199,7 @@ function readExtensionPackageDirectory(dir) {
           "Reduce the package contents."
         );
       }
-      const content = (0, import_fs65.readFileSync)(import_path71.default.join(currentDir, entry2.name));
+      const content = (0, import_fs64.readFileSync)(import_path69.default.join(currentDir, entry2.name));
       totalBytes += content.length;
       if (totalBytes > EXTENSION_LIMITS.maxExtractedTotalBytes) {
         throw new ExtensionError(
@@ -97383,10 +97474,10 @@ var EXTENSION_RECORDS_FILE_NAME = "records.jsonl";
 var EXTENSION_STATE_SCHEMA_VERSION = "1.0.0";
 var systemClock2 = () => /* @__PURE__ */ new Date();
 function extensionsDir(workspace) {
-  return import_path72.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
+  return import_path70.default.join(workspace.sidecarDir, EXTENSIONS_DIR_NAME);
 }
 function installedRootDir(workspace) {
-  return import_path72.default.join(extensionsDir(workspace), "installed");
+  return import_path70.default.join(extensionsDir(workspace), "installed");
 }
 function installedVersionDir(workspace, id, version2) {
   if (!validateExtensionId(id).valid || parseSemver2(version2) === void 0) {
@@ -97396,7 +97487,7 @@ function installedVersionDir(workspace, id, version2) {
       "Use a valid extension ID and X.Y.Z version."
     );
   }
-  const dir = import_path72.default.join(installedRootDir(workspace), id, version2);
+  const dir = import_path70.default.join(installedRootDir(workspace), id, version2);
   assertInsideWorkspace(workspace.rootDir, dir);
   return dir;
 }
@@ -97440,12 +97531,12 @@ function emptyPermissionGrants() {
   return { schemaVersion: EXTENSION_STATE_SCHEMA_VERSION, grants: {} };
 }
 function readValidatedJson(filePath, schema, empty, label) {
-  if (!(0, import_fs66.existsSync)(filePath)) {
+  if (!(0, import_fs65.existsSync)(filePath)) {
     return { value: empty, diagnostics: [], exists: false };
   }
   let text15;
   try {
-    text15 = (0, import_fs66.readFileSync)(filePath, "utf8");
+    text15 = (0, import_fs65.readFileSync)(filePath, "utf8");
   } catch (cause) {
     return {
       value: empty,
@@ -97495,13 +97586,13 @@ function readValidatedJson(filePath, schema, empty, label) {
   return { value: result.data, diagnostics: [], exists: true };
 }
 function extensionStatePath(workspace) {
-  return import_path72.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
+  return import_path70.default.join(extensionsDir(workspace), EXTENSION_STATE_FILE_NAME);
 }
 function permissionGrantsPath(workspace) {
-  return import_path72.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
+  return import_path70.default.join(extensionsDir(workspace), EXTENSION_GRANTS_FILE_NAME);
 }
 function extensionRecordsPath(workspace) {
-  return import_path72.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
+  return import_path70.default.join(extensionsDir(workspace), EXTENSION_RECORDS_FILE_NAME);
 }
 function readExtensionState(workspace) {
   const { value, diagnostics, exists } = readValidatedJson(
@@ -97552,8 +97643,8 @@ function appendExtensionRecord(workspace, record5) {
   const filePath = extensionRecordsPath(workspace);
   assertInsideWorkspace(workspace.rootDir, filePath);
   try {
-    (0, import_fs66.mkdirSync)(extensionsDir(workspace), { recursive: true });
-    (0, import_fs66.appendFileSync)(filePath, `${JSON.stringify(validated)}
+    (0, import_fs65.mkdirSync)(extensionsDir(workspace), { recursive: true });
+    (0, import_fs65.appendFileSync)(filePath, `${JSON.stringify(validated)}
 `, "utf8");
   } catch (cause) {
     throw ioError("append extension record to", filePath, cause);
@@ -97786,9 +97877,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
   if (problem !== void 0) {
     throw new ExtensionError("SBE012", `entrypoint "${entrypoint}": ${problem}.`, "Fix the extension manifest.");
   }
-  const resolved2 = import_path73.default.join(installedDir, ...entrypoint.split("/"));
-  const relative = import_path73.default.relative(installedDir, resolved2);
-  if (relative.startsWith("..") || import_path73.default.isAbsolute(relative)) {
+  const resolved2 = import_path71.default.join(installedDir, ...entrypoint.split("/"));
+  const relative = import_path71.default.relative(installedDir, resolved2);
+  if (relative.startsWith("..") || import_path71.default.isAbsolute(relative)) {
     throw new ExtensionError(
       "SBE012",
       `entrypoint "${entrypoint}" escapes the installed extension directory.`,
@@ -97796,9 +97887,9 @@ function resolveEntrypoint(installedDir, entrypoint) {
     );
   }
   let current = installedDir;
-  for (const segment of relative.split(import_path73.default.sep)) {
-    current = import_path73.default.join(current, segment);
-    const stat = (0, import_fs67.lstatSync)(current, { throwIfNoEntry: false });
+  for (const segment of relative.split(import_path71.default.sep)) {
+    current = import_path71.default.join(current, segment);
+    const stat = (0, import_fs66.lstatSync)(current, { throwIfNoEntry: false });
     if (stat === void 0) {
       throw new ExtensionError(
         "SBE012",
@@ -97814,7 +97905,7 @@ function resolveEntrypoint(installedDir, entrypoint) {
       );
     }
   }
-  const finalStat = (0, import_fs67.lstatSync)(resolved2, { throwIfNoEntry: false });
+  const finalStat = (0, import_fs66.lstatSync)(resolved2, { throwIfNoEntry: false });
   if (finalStat === void 0 || !finalStat.isFile()) {
     throw new ExtensionError(
       "SBE012",
@@ -98395,14 +98486,14 @@ async function runAnalyzerExtension(workspace, extensionId, input, options = {})
 }
 function compatibilityOf(workspace, record5, specbridgeVersion) {
   try {
-    const manifestPath = import_path74.default.join(
+    const manifestPath = import_path72.default.join(
       installedVersionDir(workspace, record5.id, record5.version),
       EXTENSION_MANIFEST_FILE_NAME
     );
-    if (!(0, import_fs68.existsSync)(manifestPath)) {
+    if (!(0, import_fs67.existsSync)(manifestPath)) {
       return { compatibility: "unknown", deprecated: false };
     }
-    const parsed = parseExtensionManifest((0, import_fs68.readFileSync)(manifestPath, "utf8"));
+    const parsed = parseExtensionManifest((0, import_fs67.readFileSync)(manifestPath, "utf8"));
     if (parsed.manifest === void 0) {
       return { compatibility: "unknown", deprecated: false };
     }
@@ -98681,8 +98772,8 @@ async function runExporterExtension(workspace, extensionId, input, options = {})
   };
 }
 function validateExportTargets(outputDir, files) {
-  const resolvedRoot = import_path75.default.resolve(outputDir);
-  const rootStat = (0, import_fs69.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
+  const resolvedRoot = import_path73.default.resolve(outputDir);
+  const rootStat = (0, import_fs68.lstatSync)(resolvedRoot, { throwIfNoEntry: false });
   if (rootStat !== void 0 && rootStat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -98701,9 +98792,9 @@ function validateExportTargets(outputDir, files) {
         "Report this to the extension author; nothing was written."
       );
     }
-    const target = import_path75.default.resolve(resolvedRoot, ...file.path.split("/"));
-    const relative = import_path75.default.relative(resolvedRoot, target);
-    if (relative.startsWith("..") || import_path75.default.isAbsolute(relative)) {
+    const target = import_path73.default.resolve(resolvedRoot, ...file.path.split("/"));
+    const relative = import_path73.default.relative(resolvedRoot, target);
+    if (relative.startsWith("..") || import_path73.default.isAbsolute(relative)) {
       throw new ExtensionError(
         "SBE030",
         `exporter output path "${file.path}" escapes the output directory.`,
@@ -98719,9 +98810,9 @@ function validateExportTargets(outputDir, files) {
     }
     seen.add(target.toLowerCase());
     let current = resolvedRoot;
-    for (const segment of relative.split(import_path75.default.sep)) {
-      current = import_path75.default.join(current, segment);
-      const stat = (0, import_fs69.lstatSync)(current, { throwIfNoEntry: false });
+    for (const segment of relative.split(import_path73.default.sep)) {
+      current = import_path73.default.join(current, segment);
+      const stat = (0, import_fs68.lstatSync)(current, { throwIfNoEntry: false });
       if (stat?.isSymbolicLink() === true) {
         throw new ExtensionError(
           "SBE011",
@@ -98730,7 +98821,7 @@ function validateExportTargets(outputDir, files) {
         );
       }
     }
-    if ((0, import_fs69.existsSync)(target)) {
+    if ((0, import_fs68.existsSync)(target)) {
       throw new ExtensionError(
         "SBE030",
         `export target "${file.path}" already exists in the output directory.`,
@@ -98750,7 +98841,7 @@ function writeExportFiles(workspace, extensionId, extensionVersion, specName, ou
     if (target === void 0 || file === void 0) {
       continue;
     }
-    (0, import_fs69.mkdirSync)(import_path75.default.dirname(target.target), { recursive: true });
+    (0, import_fs68.mkdirSync)(import_path73.default.dirname(target.target), { recursive: true });
     writeFileAtomic(target.target, file.content);
     written.push(target.relative);
   }
@@ -98837,19 +98928,19 @@ function installExtensionPackage(files, options, archiveSha256) {
     return { ...base, dryRun: true };
   }
   const recordId = newExtensionRecordId(clock);
-  const stagingDir = import_path76.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
+  const stagingDir = import_path74.default.join(extensionsDir(workspace), `tmp-install-${recordId}`);
   assertInsideWorkspace(workspace.rootDir, stagingDir);
   try {
     for (const [name, content] of files) {
-      const target = import_path76.default.join(stagingDir, ...name.split("/"));
+      const target = import_path74.default.join(stagingDir, ...name.split("/"));
       assertInsideWorkspace(workspace.rootDir, target);
-      (0, import_fs70.mkdirSync)(import_path76.default.dirname(target), { recursive: true });
+      (0, import_fs69.mkdirSync)(import_path74.default.dirname(target), { recursive: true });
       writeFileAtomic(target, content);
     }
-    (0, import_fs70.mkdirSync)(import_path76.default.dirname(targetDir), { recursive: true });
-    (0, import_fs70.renameSync)(stagingDir, targetDir);
+    (0, import_fs69.mkdirSync)(import_path74.default.dirname(targetDir), { recursive: true });
+    (0, import_fs69.renameSync)(stagingDir, targetDir);
   } catch (cause) {
-    (0, import_fs70.rmSync)(stagingDir, { recursive: true, force: true });
+    (0, import_fs69.rmSync)(stagingDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -98902,7 +98993,7 @@ function installExtensionPackage(files, options, archiveSha256) {
       }
     });
   } catch (cause) {
-    (0, import_fs70.rmSync)(targetDir, { recursive: true, force: true });
+    (0, import_fs69.rmSync)(targetDir, { recursive: true, force: true });
     if (cause instanceof ExtensionError) {
       throw cause;
     }
@@ -98957,8 +99048,8 @@ function buildExtensionArchive(sourceDir, options = {}) {
   const manifest = validation.manifest;
   const archive = createDeterministicZip(runtimeFiles);
   const archiveSha256 = sha256HexOf(archive);
-  const outputDir = options.outputDir ?? import_path77.default.join(sourceDir, "dist");
-  const archivePath = import_path77.default.join(
+  const outputDir = options.outputDir ?? import_path75.default.join(sourceDir, "dist");
+  const archivePath = import_path75.default.join(
     outputDir,
     `${manifest.id}-${manifest.version}${EXTENSION_ARCHIVE_SUFFIX}`
   );
@@ -98972,7 +99063,7 @@ function buildExtensionArchive(sourceDir, options = {}) {
     );
   }
   if (options.dryRun !== true) {
-    (0, import_fs71.mkdirSync)(outputDir, { recursive: true });
+    (0, import_fs70.mkdirSync)(outputDir, { recursive: true });
     writeFileAtomic(archivePath, archive);
   }
   return {
@@ -99770,7 +99861,7 @@ function scaffoldExtension(options) {
     );
   }
   const outputDir = options.outputDir;
-  if ((0, import_fs72.existsSync)(outputDir) && (0, import_fs72.readdirSync)(outputDir).length > 0) {
+  if ((0, import_fs71.existsSync)(outputDir) && (0, import_fs71.readdirSync)(outputDir).length > 0) {
     throw new ExtensionError(
       "SBE030",
       `output directory "${outputDir}" already exists and is not empty.`,
@@ -99830,8 +99921,8 @@ function scaffoldExtension(options) {
     };
   }
   for (const [name, content] of files) {
-    const target = import_path78.default.join(outputDir, ...name.split("/"));
-    (0, import_fs72.mkdirSync)(import_path78.default.dirname(target), { recursive: true });
+    const target = import_path76.default.join(outputDir, ...name.split("/"));
+    (0, import_fs71.mkdirSync)(import_path76.default.dirname(target), { recursive: true });
     writeFileAtomic(target, content);
   }
   return {
@@ -99944,7 +100035,7 @@ function uninstallExtension(options) {
     );
   }
   const installedDir = installedVersionDir(workspace, options.id, version2);
-  const stat = (0, import_fs73.lstatSync)(installedDir, { throwIfNoEntry: false });
+  const stat = (0, import_fs72.lstatSync)(installedDir, { throwIfNoEntry: false });
   if (stat !== void 0 && stat.isSymbolicLink()) {
     throw new ExtensionError(
       "SBE011",
@@ -99958,11 +100049,11 @@ function uninstallExtension(options) {
   const recordId = newExtensionRecordId(clock);
   let trashPath;
   if (stat !== void 0) {
-    const trashDir = import_path79.default.join(extensionsDir(workspace), "trash");
-    trashPath = import_path79.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
+    const trashDir = import_path77.default.join(extensionsDir(workspace), "trash");
+    trashPath = import_path77.default.join(trashDir, `${options.id}-${version2}-${recordId}`);
     assertInsideWorkspace(workspace.rootDir, trashPath);
-    (0, import_fs73.mkdirSync)(trashDir, { recursive: true });
-    (0, import_fs73.renameSync)(installedDir, trashPath);
+    (0, import_fs72.mkdirSync)(trashDir, { recursive: true });
+    (0, import_fs72.renameSync)(installedDir, trashPath);
   }
   writeExtensionState(workspace, {
     ...state,
@@ -100076,11 +100167,11 @@ function createExtensionVerifierHook(workspace, options = {}) {
 }
 
 // ../../packages/registry/dist/index.js
-var import_fs74 = require("fs");
-var import_path80 = __toESM(require("path"), 1);
+var import_fs73 = require("fs");
+var import_path78 = __toESM(require("path"), 1);
 var import_crypto28 = require("crypto");
-var import_fs75 = require("fs");
-var import_path81 = __toESM(require("path"), 1);
+var import_fs74 = require("fs");
+var import_path79 = __toESM(require("path"), 1);
 var BUILTIN_REGISTRY_INDEX_JSON = '{\n  "schemaVersion": "1.0.0",\n  "name": "specbridge-examples",\n  "updatedAt": "2026-01-01T00:00:00.000Z",\n  "extensions": [\n    {\n      "id": "example-analyzer",\n      "displayName": "example-analyzer",\n      "description": "Deterministic spec diagnostics contributed by the example-analyzer analyzer extension.",\n      "kind": "analyzer",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-analyzer-1.0.0.specbridge-extension.zip",\n          "sha256": "e6e0948a315b09e53bd18997dce21888af9adbb3997fbf82955399dcf3252a19",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "analyzer",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-exporter",\n      "displayName": "example-exporter",\n      "description": "Candidate export files produced by the example-exporter exporter extension.",\n      "kind": "exporter",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-exporter-1.0.0.specbridge-extension.zip",\n          "sha256": "68f42755a4e56d0e318012ec8c0e3b093e44429182ca93b02d9fb4ce2ec308a3",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "exporter",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-runner",\n      "displayName": "example-runner",\n      "description": "An out-of-process runner adapter provided by the example-runner extension.",\n      "kind": "runner",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-runner-1.0.0.specbridge-extension.zip",\n          "sha256": "5ef3db937d872bfe09495695e9ecb0a3cf3beaf9e006fabdc2972ef55ace80ef",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": true,\n              "repositoryWrite": true,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "runner",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-template-provider",\n      "displayName": "example-template-provider",\n      "description": "Spec template packs contributed by the example-template-provider template-provider extension.",\n      "kind": "template-provider",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-template-provider-1.0.0.specbridge-extension.zip",\n          "sha256": "f7caa11a13473f0891cc8d237ec4f9f2962a2dd1bd2baba4e9d01570de29044b",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": false,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "template-provider",\n        "specbridge-extension"\n      ]\n    },\n    {\n      "id": "example-verifier",\n      "displayName": "example-verifier",\n      "description": "Verification diagnostics contributed by the example-verifier verifier extension.",\n      "kind": "verifier",\n      "latestVersion": "1.0.0",\n      "versions": [\n        {\n          "version": "1.0.0",\n          "archiveUrl": "https://example.invalid/specbridge-extensions/example-verifier-1.0.0.specbridge-extension.zip",\n          "sha256": "d531c9078fcbeef6573a95773eefafd409d798bac1223c83748e0229ae0225bf",\n          "manifest": {\n            "protocolVersion": "1.0.0",\n            "compatibility": {\n              "specbridge": ">=0.7.1 <2.0.0"\n            },\n            "permissions": {\n              "specRead": true,\n              "repositoryRead": false,\n              "repositoryWrite": false,\n              "network": false,\n              "childProcess": false,\n              "environmentVariables": []\n            }\n          }\n        }\n      ],\n      "repository": "https://github.com/HelloThisWorld/specbridge",\n      "license": "MIT",\n      "keywords": [\n        "verifier",\n        "specbridge-extension"\n      ]\n    }\n  ]\n}\n';
 var REGISTRY_ERROR_CODES = {
   SBR001: "registry not found",
@@ -100237,20 +100328,20 @@ var cachedRegistrySchema = external_exports.object({
   index: registryIndexSchema
 }).passthrough();
 function registryCacheDir(workspace) {
-  return import_path80.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
+  return import_path78.default.join(workspace.sidecarDir, REGISTRY_CACHE_DIR_NAME);
 }
 function registryCachePath(workspace, name) {
-  const target = import_path80.default.join(registryCacheDir(workspace), `${name}.json`);
+  const target = import_path78.default.join(registryCacheDir(workspace), `${name}.json`);
   assertInsideWorkspace(workspace.rootDir, target);
   return target;
 }
 function readRegistryCache(workspace, name) {
   const filePath = registryCachePath(workspace, name);
-  if (!(0, import_fs74.existsSync)(filePath)) {
+  if (!(0, import_fs73.existsSync)(filePath)) {
     return { diagnostics: [] };
   }
   try {
-    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs74.readFileSync)(filePath, "utf8")));
+    const parsed = cachedRegistrySchema.safeParse(JSON.parse((0, import_fs73.readFileSync)(filePath, "utf8")));
     if (!parsed.success) {
       return {
         diagnostics: [
@@ -100303,9 +100394,9 @@ function resolveRegistryIndex(workspace, source) {
     return { sourceName: source.name, index: parsed.index, origin: "builtin", diagnostics: [] };
   }
   if (source.type === "local-file") {
-    const filePath = import_path80.default.resolve(workspace.rootDir, source.file);
+    const filePath = import_path78.default.resolve(workspace.rootDir, source.file);
     assertInsideWorkspace(workspace.rootDir, filePath);
-    if (!(0, import_fs74.existsSync)(filePath)) {
+    if (!(0, import_fs73.existsSync)(filePath)) {
       return {
         sourceName: source.name,
         index: { schemaVersion: "1.0.0", name: source.name, updatedAt: "unknown", extensions: [] },
@@ -100320,7 +100411,7 @@ function resolveRegistryIndex(workspace, source) {
         ]
       };
     }
-    const text15 = (0, import_fs74.readFileSync)(filePath, "utf8");
+    const text15 = (0, import_fs73.readFileSync)(filePath, "utf8");
     const parsed = parseRegistryIndex(text15);
     if (parsed.index === void 0) {
       throw new RegistryError(
@@ -100563,7 +100654,7 @@ var registriesConfigSchema = external_exports.object({
   registries: external_exports.array(registrySourceSchema).max(20)
 }).passthrough();
 function registriesConfigPath(workspace) {
-  return import_path81.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
+  return import_path79.default.join(workspace.sidecarDir, REGISTRIES_FILE_NAME);
 }
 function defaultRegistriesConfig() {
   return {
@@ -100573,12 +100664,12 @@ function defaultRegistriesConfig() {
 }
 function readRegistriesConfig(workspace) {
   const filePath = registriesConfigPath(workspace);
-  if (!(0, import_fs75.existsSync)(filePath)) {
+  if (!(0, import_fs74.existsSync)(filePath)) {
     return { config: defaultRegistriesConfig(), diagnostics: [], exists: false };
   }
   let parsed;
   try {
-    parsed = JSON.parse((0, import_fs75.readFileSync)(filePath, "utf8"));
+    parsed = JSON.parse((0, import_fs74.readFileSync)(filePath, "utf8"));
   } catch (cause) {
     return {
       config: defaultRegistriesConfig(),
@@ -103195,30 +103286,30 @@ var import_node_fs9 = require("fs");
 
 // ../../packages/intake/dist/index.js
 var import_crypto30 = require("crypto");
+var import_fs81 = require("fs");
+var import_path89 = __toESM(require("path"), 1);
 var import_fs82 = require("fs");
-var import_path91 = __toESM(require("path"), 1);
-var import_fs83 = require("fs");
-var import_path92 = __toESM(require("path"), 1);
+var import_path90 = __toESM(require("path"), 1);
 
 // ../../packages/autonomy/dist/index.js
 var import_crypto29 = require("crypto");
-var import_fs76 = require("fs");
-var import_path82 = __toESM(require("path"), 1);
+var import_fs75 = require("fs");
+var import_path80 = __toESM(require("path"), 1);
 var import_os2 = __toESM(require("os"), 1);
-var import_fs77 = require("fs");
+var import_fs76 = require("fs");
+var import_path81 = __toESM(require("path"), 1);
+var import_path82 = __toESM(require("path"), 1);
 var import_path83 = __toESM(require("path"), 1);
+var import_net2 = require("net");
+var import_fs77 = require("fs");
 var import_path84 = __toESM(require("path"), 1);
 var import_path85 = __toESM(require("path"), 1);
-var import_net2 = require("net");
 var import_fs78 = require("fs");
 var import_path86 = __toESM(require("path"), 1);
-var import_path87 = __toESM(require("path"), 1);
 var import_fs79 = require("fs");
-var import_path88 = __toESM(require("path"), 1);
+var import_path87 = __toESM(require("path"), 1);
 var import_fs80 = require("fs");
-var import_path89 = __toESM(require("path"), 1);
-var import_fs81 = require("fs");
-var import_path90 = __toESM(require("path"), 1);
+var import_path88 = __toESM(require("path"), 1);
 var SEAL_STATUSES = [
   /** Drafted from mission state; not yet authorized by a human. */
   "DRAFT",
@@ -103740,43 +103831,43 @@ function assertAutonomyId(kind, id) {
 function autonomyDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path82.default.join(workspace.rootDir, ".specbridge", "autonomy")
+    import_path80.default.join(workspace.rootDir, ".specbridge", "autonomy")
   );
 }
 function autonomyPath(workspace, ...segments) {
-  return assertInsideWorkspace(workspace.rootDir, import_path82.default.join(autonomyDir(workspace), ...segments));
+  return assertInsideWorkspace(workspace.rootDir, import_path80.default.join(autonomyDir(workspace), ...segments));
 }
 function writeJsonRecord(file, value) {
-  (0, import_fs76.mkdirSync)(import_path82.default.dirname(file), { recursive: true });
+  (0, import_fs75.mkdirSync)(import_path80.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJsonRecord(file, parse3) {
-  if (!(0, import_fs76.existsSync)(file)) return void 0;
+  if (!(0, import_fs75.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs76.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs75.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function listJsonRecords(dir, parse3) {
-  if (!(0, import_fs76.existsSync)(dir)) return [];
+  if (!(0, import_fs75.existsSync)(dir)) return [];
   const out = [];
-  for (const entry2 of (0, import_fs76.readdirSync)(dir).sort()) {
+  for (const entry2 of (0, import_fs75.readdirSync)(dir).sort()) {
     if (!entry2.endsWith(".json")) continue;
-    const value = readJsonRecord(import_path82.default.join(dir, entry2), parse3);
+    const value = readJsonRecord(import_path80.default.join(dir, entry2), parse3);
     if (value !== void 0) out.push(value);
   }
   return out;
 }
 function appendJsonl2(file, value) {
-  (0, import_fs76.mkdirSync)(import_path82.default.dirname(file), { recursive: true });
-  (0, import_fs76.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs75.mkdirSync)(import_path80.default.dirname(file), { recursive: true });
+  (0, import_fs75.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readJsonl2(file, parse3, limit = 5e3) {
-  if (!(0, import_fs76.existsSync)(file)) return { entries: [], skipped: 0 };
-  const lines = (0, import_fs76.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0);
+  if (!(0, import_fs75.existsSync)(file)) return { entries: [], skipped: 0 };
+  const lines = (0, import_fs75.readFileSync)(file, "utf8").split("\n").filter((line) => line.trim().length > 0);
   const slice = lines.slice(-limit);
   const entries = [];
   let skipped = 0;
@@ -103790,12 +103881,12 @@ function readJsonl2(file, parse3, limit = 5e3) {
   return { entries, skipped };
 }
 function writeImmutableRecord(file, value, kind) {
-  if ((0, import_fs76.existsSync)(file)) {
+  if ((0, import_fs75.existsSync)(file)) {
     throw new AutonomyError("SBA024", `A ${kind} already exists at this identity and is immutable.`, {
       remediation: [
         `Create a new ${kind} that supersedes the existing one instead of rewriting history.`
       ],
-      details: { file: import_path82.default.basename(file), kind }
+      details: { file: import_path80.default.basename(file), kind }
     });
   }
   writeJsonRecord(file, value);
@@ -105364,7 +105455,7 @@ function createProcessProbeRunner(cwd) {
 }
 function isWritableDirectory(dir) {
   try {
-    (0, import_fs77.accessSync)(dir, import_fs77.constants.W_OK);
+    (0, import_fs76.accessSync)(dir, import_fs76.constants.W_OK);
     return true;
   } catch {
     return false;
@@ -105372,7 +105463,7 @@ function isWritableDirectory(dir) {
 }
 function freeDiskBytes(target) {
   try {
-    const stats = (0, import_fs77.statfsSync)(target);
+    const stats = (0, import_fs76.statfsSync)(target);
     return Number(stats.bavail) * Number(stats.bsize);
   } catch {
     return null;
@@ -105380,7 +105471,7 @@ function freeDiskBytes(target) {
 }
 function pathExists(target) {
   try {
-    return (0, import_fs77.existsSync)(target);
+    return (0, import_fs76.existsSync)(target);
   } catch {
     return false;
   }
@@ -105418,10 +105509,10 @@ async function probeCompose(run) {
   };
 }
 function detectPackageManager(projectDir) {
-  const manifest = import_path83.default.join(projectDir, "package.json");
+  const manifest = import_path81.default.join(projectDir, "package.json");
   if (pathExists(manifest)) {
     try {
-      const raw = JSON.parse((0, import_fs77.readFileSync)(manifest, "utf8"));
+      const raw = JSON.parse((0, import_fs76.readFileSync)(manifest, "utf8"));
       if (typeof raw.packageManager === "string" && raw.packageManager.length > 0) {
         return raw.packageManager.split("@")[0] ?? null;
       }
@@ -105434,7 +105525,7 @@ function detectPackageManager(projectDir) {
     ["package-lock.json", "npm"],
     ["bun.lockb", "bun"]
   ]) {
-    if (pathExists(import_path83.default.join(projectDir, lockfile))) return manager;
+    if (pathExists(import_path81.default.join(projectDir, lockfile))) return manager;
   }
   return null;
 }
@@ -105448,7 +105539,7 @@ function detectBuildTool(projectDir) {
     ["Cargo.toml", "cargo"],
     ["go.mod", "go"]
   ]) {
-    if (pathExists(import_path83.default.join(projectDir, marker))) return tool;
+    if (pathExists(import_path81.default.join(projectDir, marker))) return tool;
   }
   return null;
 }
@@ -105772,7 +105863,7 @@ function assertOvernightReady(report) {
     {
       remediation: [
         ...report.checks.filter((check6) => check6.outcome === "HUMAN_REQUIRED" || check6.outcome === "UNKNOWN").flatMap((check6) => check6.remediation).slice(0, 10),
-        `Full report: ${import_path84.default.posix.join(".specbridge", "autonomy", "preflight", `${report.reportId}.json`)}`
+        `Full report: ${import_path82.default.posix.join(".specbridge", "autonomy", "preflight", `${report.reportId}.json`)}`
       ],
       details: { verdict: report.verdict, reportId: report.reportId }
     }
@@ -105933,19 +106024,19 @@ function decideToolsmithRequest(request, context) {
   };
 }
 function assertInsideWorkspaceBoundary(target, context) {
-  if (import_path85.default.isAbsolute(target)) {
-    const resolved2 = import_path85.default.resolve(target);
-    const root = import_path85.default.resolve(context.workspaceRoot);
-    if (resolved2 !== root && !resolved2.startsWith(root + import_path85.default.sep)) {
+  if (import_path83.default.isAbsolute(target)) {
+    const resolved2 = import_path83.default.resolve(target);
+    const root = import_path83.default.resolve(context.workspaceRoot);
+    if (resolved2 !== root && !resolved2.startsWith(root + import_path83.default.sep)) {
       return {
         granted: false,
         reason: "TARGET_OUTSIDE_WORKSPACE",
         detail: `"${target}" is outside the workspace. Project tooling lives in the project.`
       };
     }
-    return matchesProtected(import_path85.default.relative(root, resolved2), context);
+    return matchesProtected(import_path83.default.relative(root, resolved2), context);
   }
-  const normalized = import_path85.default.normalize(target).replace(/\\/g, "/");
+  const normalized = import_path83.default.normalize(target).replace(/\\/g, "/");
   if (normalized.startsWith("../") || normalized === "..") {
     return {
       granted: false,
@@ -106625,7 +106716,7 @@ async function finishFailed(deps4, options, plan, instance, failure3) {
   return failed;
 }
 function retainLog(deps4, instanceId, serviceId, text142) {
-  const relative = import_path86.default.posix.join(
+  const relative = import_path84.default.posix.join(
     ".specbridge",
     "autonomy",
     "environments",
@@ -106634,8 +106725,8 @@ function retainLog(deps4, instanceId, serviceId, text142) {
     `${serviceId}.log`
   );
   const absolute = autonomyPath(deps4.workspace, "environments", "logs", instanceId, `${serviceId}.log`);
-  (0, import_fs78.mkdirSync)(import_path86.default.dirname(absolute), { recursive: true });
-  (0, import_fs78.writeFileSync)(absolute, text142, "utf8");
+  (0, import_fs77.mkdirSync)(import_path84.default.dirname(absolute), { recursive: true });
+  (0, import_fs77.writeFileSync)(absolute, text142, "utf8");
   return relative;
 }
 async function teardownEnvironment(deps4, input) {
@@ -106714,7 +106805,7 @@ function createComposeRuntime(options) {
   const composeArgs = (plan, rest) => {
     const args = ["compose"];
     if (plan.composeFile !== void 0) {
-      args.push("-f", import_path87.default.resolve(options.cwd, plan.composeFile));
+      args.push("-f", import_path85.default.resolve(options.cwd, plan.composeFile));
     }
     args.push("--project-name", plan.projectName ?? plan.planId);
     args.push(...rest);
@@ -107120,9 +107211,9 @@ function writeEvidenceFile(deps4, resultId, name, extension, data) {
     resultId,
     `${safe}.${extension}`
   );
-  (0, import_fs79.mkdirSync)(import_path88.default.dirname(absolute), { recursive: true });
-  (0, import_fs79.writeFileSync)(absolute, data);
-  return import_path88.default.posix.join(
+  (0, import_fs78.mkdirSync)(import_path86.default.dirname(absolute), { recursive: true });
+  (0, import_fs78.writeFileSync)(absolute, data);
+  return import_path86.default.posix.join(
     ".specbridge",
     "autonomy",
     "browser",
@@ -108644,7 +108735,7 @@ async function runReproducibilityPhase(deps4, options) {
   }
   const runId = newRecordId(deps4, "rp");
   const checkoutPath = autonomyPath(deps4.workspace, "reproducibility", "checkouts", runId);
-  (0, import_fs80.mkdirSync)(import_path89.default.dirname(checkoutPath), { recursive: true });
+  (0, import_fs79.mkdirSync)(import_path87.default.dirname(checkoutPath), { recursive: true });
   const head = await runSafeProcess({
     executable: "git",
     argv: ["rev-parse", "HEAD"],
@@ -108712,9 +108803,9 @@ async function runReproducibilityPhase(deps4, options) {
 }
 function detectNodeInstaller(workspace) {
   const root = workspace.rootDir;
-  if ((0, import_fs80.existsSync)(import_path89.default.join(root, "pnpm-lock.yaml"))) return ["pnpm", "install", "--frozen-lockfile"];
-  if ((0, import_fs80.existsSync)(import_path89.default.join(root, "package-lock.json"))) return ["npm", "ci"];
-  if ((0, import_fs80.existsSync)(import_path89.default.join(root, "yarn.lock"))) return ["yarn", "install", "--frozen-lockfile"];
+  if ((0, import_fs79.existsSync)(import_path87.default.join(root, "pnpm-lock.yaml"))) return ["pnpm", "install", "--frozen-lockfile"];
+  if ((0, import_fs79.existsSync)(import_path87.default.join(root, "package-lock.json"))) return ["npm", "ci"];
+  if ((0, import_fs79.existsSync)(import_path87.default.join(root, "yarn.lock"))) return ["yarn", "install", "--frozen-lockfile"];
   return void 0;
 }
 async function removeCheckout(workspace, checkoutPath) {
@@ -108796,12 +108887,12 @@ async function runGapRepairs(deps4, options) {
         fail(`the trusted suite failed in the repair worktree: ${verification.requiredFailed.join(", ").slice(0, 200)}`);
         continue;
       }
-      const patchFile = import_path89.default.join(
+      const patchFile = import_path87.default.join(
         autonomyPath(deps4.workspace, "closure", options.jobId, "scratch", item.gapId),
         "repair.patch"
       );
-      (0, import_fs80.mkdirSync)(import_path89.default.dirname(patchFile), { recursive: true });
-      (0, import_fs80.writeFileSync)(patchFile, collected.patch, "utf8");
+      (0, import_fs79.mkdirSync)(import_path87.default.dirname(patchFile), { recursive: true });
+      (0, import_fs79.writeFileSync)(patchFile, collected.patch, "utf8");
       const applied = await runSafeProcess({
         executable: "git",
         argv: ["apply", "--3way", patchFile],
@@ -110439,13 +110530,13 @@ function executionTelemetryReportFile(workspace, jobId) {
   }
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path90.default.join(workspace.sidecarDir, "reports", `job-${jobId}-telemetry.json`)
+    import_path88.default.join(workspace.sidecarDir, "reports", `job-${jobId}-telemetry.json`)
   );
 }
 function persistExecutionTelemetryReport(workspace, report) {
   const validated = executionTelemetryReportSchema.parse(report);
   const file = executionTelemetryReportFile(workspace, validated.jobId);
-  (0, import_fs81.mkdirSync)(import_path90.default.dirname(file), { recursive: true });
+  (0, import_fs80.mkdirSync)(import_path88.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(validated, null, 2)}
 `);
   return file;
@@ -111109,18 +111200,18 @@ function listCertificationRuns(workspace) {
 }
 
 // ../../packages/intake/dist/index.js
+var import_fs83 = require("fs");
+var import_path91 = __toESM(require("path"), 1);
 var import_fs84 = require("fs");
-var import_path93 = __toESM(require("path"), 1);
+var import_path92 = __toESM(require("path"), 1);
 var import_fs85 = require("fs");
-var import_path94 = __toESM(require("path"), 1);
+var import_path93 = __toESM(require("path"), 1);
 var import_fs86 = require("fs");
-var import_path95 = __toESM(require("path"), 1);
+var import_path94 = __toESM(require("path"), 1);
 var import_fs87 = require("fs");
-var import_path96 = __toESM(require("path"), 1);
+var import_path95 = __toESM(require("path"), 1);
 var import_fs88 = require("fs");
-var import_path97 = __toESM(require("path"), 1);
-var import_fs89 = require("fs");
-var import_path98 = __toESM(require("path"), 1);
+var import_path96 = __toESM(require("path"), 1);
 var INTAKE_STATUSES = [
   /** The source specification is ingested; discovery has not run. */
   "INGESTED",
@@ -111845,41 +111936,41 @@ function assertIntakeId(id) {
 function intakeRootDir(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path91.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
+    import_path89.default.join(workspace.rootDir, ".specbridge", INTAKE_DIR_NAME)
   );
 }
 function intakeDir(workspace, intakeId) {
   assertIntakeId(intakeId);
-  return assertInsideWorkspace(workspace.rootDir, import_path91.default.join(intakeRootDir(workspace), intakeId));
+  return assertInsideWorkspace(workspace.rootDir, import_path89.default.join(intakeRootDir(workspace), intakeId));
 }
 function intakePath(workspace, intakeId, ...segments) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path91.default.join(intakeDir(workspace, intakeId), ...segments)
+    import_path89.default.join(intakeDir(workspace, intakeId), ...segments)
   );
 }
 function writeJson(file, value) {
-  (0, import_fs82.mkdirSync)(import_path91.default.dirname(file), { recursive: true });
+  (0, import_fs81.mkdirSync)(import_path89.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(value, null, 2)}
 `);
 }
 function readJson2(file, parse3) {
-  if (!(0, import_fs82.existsSync)(file)) return void 0;
+  if (!(0, import_fs81.existsSync)(file)) return void 0;
   try {
-    return parse3(JSON.parse((0, import_fs82.readFileSync)(file, "utf8")));
+    return parse3(JSON.parse((0, import_fs81.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function appendJsonl3(file, value) {
-  (0, import_fs82.mkdirSync)(import_path91.default.dirname(file), { recursive: true });
-  (0, import_fs82.appendFileSync)(file, `${JSON.stringify(value)}
+  (0, import_fs81.mkdirSync)(import_path89.default.dirname(file), { recursive: true });
+  (0, import_fs81.appendFileSync)(file, `${JSON.stringify(value)}
 `, "utf8");
 }
 function readFolded(file, key, parse3) {
-  if (!(0, import_fs82.existsSync)(file)) return [];
+  if (!(0, import_fs81.existsSync)(file)) return [];
   const folded = /* @__PURE__ */ new Map();
-  for (const line of (0, import_fs82.readFileSync)(file, "utf8").split("\n")) {
+  for (const line of (0, import_fs81.readFileSync)(file, "utf8").split("\n")) {
     if (line.trim().length === 0) continue;
     try {
       const value = parse3(JSON.parse(line));
@@ -111912,16 +112003,16 @@ function writeIntakeState(workspace, state) {
 }
 function listIntakes(workspace) {
   const root = intakeRootDir(workspace);
-  if (!(0, import_fs82.existsSync)(root)) return { intakes: [], diagnostics: [] };
+  if (!(0, import_fs81.existsSync)(root)) return { intakes: [], diagnostics: [] };
   const intakes = [];
   const diagnostics = [];
-  for (const entry2 of (0, import_fs82.readdirSync)(root, { withFileTypes: true })) {
+  for (const entry2 of (0, import_fs81.readdirSync)(root, { withFileTypes: true })) {
     if (!entry2.isDirectory()) continue;
     if (!ID_PATTERN11.test(entry2.name)) continue;
-    const file = import_path91.default.join(root, entry2.name, "intake.json");
-    if (!(0, import_fs82.existsSync)(file)) continue;
+    const file = import_path89.default.join(root, entry2.name, "intake.json");
+    if (!(0, import_fs81.existsSync)(file)) continue;
     try {
-      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs82.readFileSync)(file, "utf8"))));
+      intakes.push(specIntakeStateSchema.parse(JSON.parse((0, import_fs81.readFileSync)(file, "utf8"))));
     } catch (cause) {
       diagnostics.push({
         intakeId: entry2.name,
@@ -111951,8 +112042,8 @@ function sourceFile(workspace, intakeId, contentHash) {
 }
 function storeSourceText(workspace, intakeId, contentHash, content) {
   const file = sourceFile(workspace, intakeId, contentHash);
-  if (!(0, import_fs82.existsSync)(file)) {
-    (0, import_fs82.mkdirSync)(import_path91.default.dirname(file), { recursive: true });
+  if (!(0, import_fs81.existsSync)(file)) {
+    (0, import_fs81.mkdirSync)(import_path89.default.dirname(file), { recursive: true });
     writeFileAtomic(file, content);
   }
   return file;
@@ -112037,7 +112128,7 @@ function approvalFile2(workspace, intakeId) {
 function writeApproval(workspace, approval) {
   const validated = intakeApprovalSchema.parse(approval);
   const file = approvalFile2(workspace, validated.intakeId);
-  if ((0, import_fs82.existsSync)(file)) {
+  if ((0, import_fs81.existsSync)(file)) {
     throw new IntakeError(
       "SBI017",
       `Spec intake "${validated.intakeId}" is already approved; an approval is immutable.`,
@@ -112096,7 +112187,7 @@ function appendIntakeEvent(workspace, intakeId, event) {
 function baselineFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path91.default.join(intakeRootDir(workspace), "baseline.json")
+    import_path89.default.join(intakeRootDir(workspace), "baseline.json")
   );
 }
 function readProductBaseline(workspace) {
@@ -112711,7 +112802,7 @@ var BUILD_MARKERS = [
 ];
 function detectBuildSystem(rootDir) {
   for (const marker of BUILD_MARKERS) {
-    if ((0, import_fs83.existsSync)(import_path92.default.join(rootDir, marker.file))) return marker.system;
+    if ((0, import_fs82.existsSync)(import_path90.default.join(rootDir, marker.file))) return marker.system;
   }
   return null;
 }
@@ -112748,33 +112839,33 @@ var PUBLIC_INTERFACE_PATTERNS = [
 var TEST_DIR_PATTERN = /^(tests?|spec|specs|__tests__|it|integration-tests?|e2e)$/i;
 function readGitHead(rootDir) {
   try {
-    const dotGit = import_path92.default.join(rootDir, ".git");
-    if (!(0, import_fs83.existsSync)(dotGit)) return null;
+    const dotGit = import_path90.default.join(rootDir, ".git");
+    if (!(0, import_fs82.existsSync)(dotGit)) return null;
     let gitDir = dotGit;
-    if ((0, import_fs83.statSync)(dotGit).isFile()) {
-      const pointer = (0, import_fs83.readFileSync)(dotGit, "utf8").trim();
+    if ((0, import_fs82.statSync)(dotGit).isFile()) {
+      const pointer = (0, import_fs82.readFileSync)(dotGit, "utf8").trim();
       const match = /^gitdir:\s*(.+)$/.exec(pointer);
       if (match === null) return null;
       const target = match[1] ?? "";
-      gitDir = import_path92.default.isAbsolute(target) ? target : import_path92.default.resolve(rootDir, target);
+      gitDir = import_path90.default.isAbsolute(target) ? target : import_path90.default.resolve(rootDir, target);
     }
-    const headFile = import_path92.default.join(gitDir, "HEAD");
-    if (!(0, import_fs83.existsSync)(headFile)) return null;
-    const head = (0, import_fs83.readFileSync)(headFile, "utf8").trim();
+    const headFile = import_path90.default.join(gitDir, "HEAD");
+    if (!(0, import_fs82.existsSync)(headFile)) return null;
+    const head = (0, import_fs82.readFileSync)(headFile, "utf8").trim();
     if (/^[0-9a-f]{40}$/i.test(head)) return head.toLowerCase();
     const refMatch = /^ref:\s*(.+)$/.exec(head);
     if (refMatch === null) return null;
     const ref = (refMatch[1] ?? "").trim();
     for (const dir of refDirsFor(gitDir)) {
-      const refFile = import_path92.default.join(dir, ...ref.split("/"));
-      if (!(0, import_fs83.existsSync)(refFile)) continue;
-      const sha = (0, import_fs83.readFileSync)(refFile, "utf8").trim();
+      const refFile = import_path90.default.join(dir, ...ref.split("/"));
+      if (!(0, import_fs82.existsSync)(refFile)) continue;
+      const sha = (0, import_fs82.readFileSync)(refFile, "utf8").trim();
       if (/^[0-9a-f]{40}$/i.test(sha)) return sha.toLowerCase();
     }
     for (const dir of refDirsFor(gitDir)) {
-      const packed = import_path92.default.join(dir, "packed-refs");
-      if (!(0, import_fs83.existsSync)(packed)) continue;
-      for (const line of (0, import_fs83.readFileSync)(packed, "utf8").split("\n")) {
+      const packed = import_path90.default.join(dir, "packed-refs");
+      if (!(0, import_fs82.existsSync)(packed)) continue;
+      for (const line of (0, import_fs82.readFileSync)(packed, "utf8").split("\n")) {
         const entry2 = /^([0-9a-f]{40})\s+(.+)$/.exec(line.trim());
         if (entry2 !== null && entry2[2] === ref) return (entry2[1] ?? "").toLowerCase();
       }
@@ -112786,12 +112877,12 @@ function readGitHead(rootDir) {
 }
 function refDirsFor(gitDir) {
   const dirs = [gitDir];
-  const commonFile = import_path92.default.join(gitDir, "commondir");
-  if ((0, import_fs83.existsSync)(commonFile)) {
+  const commonFile = import_path90.default.join(gitDir, "commondir");
+  if ((0, import_fs82.existsSync)(commonFile)) {
     try {
-      const target = (0, import_fs83.readFileSync)(commonFile, "utf8").trim();
+      const target = (0, import_fs82.readFileSync)(commonFile, "utf8").trim();
       if (target.length > 0) {
-        dirs.push(import_path92.default.isAbsolute(target) ? target : import_path92.default.resolve(gitDir, target));
+        dirs.push(import_path90.default.isAbsolute(target) ? target : import_path90.default.resolve(gitDir, target));
       }
     } catch {
     }
@@ -112843,7 +112934,7 @@ function groundInRepository(deps4, request) {
       summary: `existing Kiro spec with ${folder.files.length} document(s)`,
       authoritative: false,
       topics: [],
-      path: import_path92.default.posix.join(".kiro", "specs", folder.name)
+      path: import_path90.default.posix.join(".kiro", "specs", folder.name)
     });
   }
   for (const steering of safeSteering(workspace, notes)) {
@@ -112854,7 +112945,7 @@ function groundInRepository(deps4, request) {
       summary: `steering document (${steering.inclusion})`,
       authoritative: false,
       topics: [],
-      path: import_path92.default.posix.join(".kiro", "steering", steering.fileName)
+      path: import_path90.default.posix.join(".kiro", "steering", steering.fileName)
     });
   }
   const buildSystem = detectBuildSystem(workspace.rootDir);
@@ -112898,7 +112989,7 @@ function groundInRepository(deps4, request) {
     });
   }
   for (const container of modules.slice(0, 40)) {
-    const dir = import_path92.default.join(workspace.rootDir, container);
+    const dir = import_path90.default.join(workspace.rootDir, container);
     for (const entry2 of safeReaddir(dir, notes)) {
       if (!entry2.isDirectory()) continue;
       if (MODULE_DENYLIST.has(entry2.name) || entry2.name.startsWith(".")) continue;
@@ -113050,7 +113141,7 @@ function safeSteering(workspace, notes) {
 }
 function safeReaddir(dir, notes) {
   try {
-    return (0, import_fs83.readdirSync)(dir, { withFileTypes: true });
+    return (0, import_fs82.readdirSync)(dir, { withFileTypes: true });
   } catch (cause) {
     notes.push(`Directory ${dir} could not be listed: ${message(cause)}.`);
     return [];
@@ -113863,14 +113954,14 @@ function emptyProjectionMap() {
 function mapFile(workspace, intakeId) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path93.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
+    import_path91.default.join(workspace.rootDir, ".specbridge", "intake", intakeId, "mission-map.json")
   );
 }
 function readProjectionMap(workspace, intakeId) {
   const file = mapFile(workspace, intakeId);
-  if (!(0, import_fs84.existsSync)(file)) return emptyProjectionMap();
+  if (!(0, import_fs83.existsSync)(file)) return emptyProjectionMap();
   try {
-    const raw = JSON.parse((0, import_fs84.readFileSync)(file, "utf8"));
+    const raw = JSON.parse((0, import_fs83.readFileSync)(file, "utf8"));
     return {
       itemContracts: raw.itemContracts ?? {},
       itemDecisions: raw.itemDecisions ?? {},
@@ -113886,7 +113977,7 @@ function readProjectionMap(workspace, intakeId) {
 }
 function writeProjectionMap(workspace, intakeId, map) {
   const file = mapFile(workspace, intakeId);
-  (0, import_fs84.mkdirSync)(import_path93.default.dirname(file), { recursive: true });
+  (0, import_fs83.mkdirSync)(import_path91.default.dirname(file), { recursive: true });
   writeFileAtomic(file, `${JSON.stringify(map, null, 2)}
 `);
 }
@@ -114546,8 +114637,8 @@ function checkProjectionEquivalence(request) {
   let checked = 0;
   let traced = 0;
   for (const stage of stages) {
-    const file = import_path94.default.join(folder.dir, `${stage}.md`);
-    if (!(0, import_fs85.existsSync)(file)) {
+    const file = import_path92.default.join(folder.dir, `${stage}.md`);
+    if (!(0, import_fs84.existsSync)(file)) {
       divergences.push({
         kind: "UNRELATED_ARTIFACT",
         stage,
@@ -114555,7 +114646,7 @@ function checkProjectionEquivalence(request) {
       });
       continue;
     }
-    const content = (0, import_fs85.readFileSync)(file, "utf8");
+    const content = (0, import_fs84.readFileSync)(file, "utf8");
     artifactHashes[stage] = sha256Hex(content);
     for (const statement of extractNormativeStatements(stage, content)) {
       checked += 1;
@@ -115298,7 +115389,7 @@ function startSpecIntake(deps4, request) {
     receivedVia: hostOf2(deps4),
     byteLength,
     contentHash,
-    storedAt: import_path95.default.posix.join(
+    storedAt: import_path93.default.posix.join(
       ".specbridge",
       "intake",
       intakeId,
@@ -115354,20 +115445,20 @@ function startSpecIntake(deps4, request) {
   return { intake, source, mission };
 }
 function startSpecIntakeFromFile(deps4, request) {
-  const resolved2 = import_path95.default.resolve(request.file);
-  if (!(0, import_fs86.existsSync)(resolved2)) {
+  const resolved2 = import_path93.default.resolve(request.file);
+  if (!(0, import_fs85.existsSync)(resolved2)) {
     throw new IntakeError("SBI007", `No specification file at ${request.file}.`, {
       remediation: ["Check the path, or pass the specification text with --text."]
     });
   }
-  const size = (0, import_fs86.statSync)(resolved2).size;
+  const size = (0, import_fs85.statSync)(resolved2).size;
   if (size > INTAKE_LIMITS.maxSourceBytes) {
     throw new IntakeError(
       "SBI006",
       `${request.file} is ${size} bytes, over the ${INTAKE_LIMITS.maxSourceBytes}-byte bound.`
     );
   }
-  const content = (0, import_fs86.readFileSync)(resolved2, "utf8");
+  const content = (0, import_fs85.readFileSync)(resolved2, "utf8");
   return startSpecIntake(deps4, {
     ...request,
     kind: "file",
@@ -116092,7 +116183,7 @@ var repositoryManifestSchema = external_exports.object({
 function repositoryManifestFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path96.default.join(workspace.sidecarDir, "repositories.json")
+    import_path94.default.join(workspace.sidecarDir, "repositories.json")
   );
 }
 var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
@@ -116109,10 +116200,10 @@ var DETECTION_DENYLIST = /* @__PURE__ */ new Set([
 ]);
 function readRepositoryManifest(workspace) {
   const file = repositoryManifestFile(workspace);
-  if (!(0, import_fs87.existsSync)(file)) return void 0;
+  if (!(0, import_fs86.existsSync)(file)) return void 0;
   let raw;
   try {
-    raw = JSON.parse((0, import_fs87.readFileSync)(file, "utf8"));
+    raw = JSON.parse((0, import_fs86.readFileSync)(file, "utf8"));
   } catch (cause) {
     throw new IntakeError("SBI018", `The repository manifest at ${file} is not valid JSON.`, {
       remediation: ["Fix or delete .specbridge/repositories.json; without it the workspace root is the repository."],
@@ -116132,7 +116223,7 @@ function resolveRepositories(workspace) {
       }
       seen.add(entry2.id);
       const absDir = assertInsideWorkspace(workspace.rootDir, entry2.path);
-      if (!(0, import_fs87.existsSync)(absDir) || !(0, import_fs87.statSync)(absDir).isDirectory()) {
+      if (!(0, import_fs86.existsSync)(absDir) || !(0, import_fs86.statSync)(absDir).isDirectory()) {
         throw new IntakeError(
           "SBI018",
           `The repository manifest names "${entry2.id}" at ${entry2.path}, which is not a directory.`,
@@ -116149,11 +116240,11 @@ function resolveRepositories(workspace) {
   }
   const children = [];
   try {
-    for (const entry2 of (0, import_fs87.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
+    for (const entry2 of (0, import_fs86.readdirSync)(workspace.rootDir, { withFileTypes: true })) {
       if (!entry2.isDirectory()) continue;
       if (DETECTION_DENYLIST.has(entry2.name) || entry2.name.startsWith(".")) continue;
-      const absDir = import_path96.default.join(workspace.rootDir, entry2.name);
-      if (!(0, import_fs87.existsSync)(import_path96.default.join(absDir, ".git"))) continue;
+      const absDir = import_path94.default.join(workspace.rootDir, entry2.name);
+      if (!(0, import_fs86.existsSync)(import_path94.default.join(absDir, ".git"))) continue;
       if (children.length >= BOOTSTRAP_LIMITS.maxRepositories) {
         notes.push("More child repositories exist than the bootstrap bound; declare a manifest to choose.");
         break;
@@ -116164,7 +116255,7 @@ function resolveRepositories(workspace) {
     notes.push(`The workspace root could not be listed: ${cause instanceof Error ? cause.message : String(cause)}.`);
   }
   if (children.length > 0) {
-    const rootIsRepo = (0, import_fs87.existsSync)(import_path96.default.join(workspace.rootDir, ".git"));
+    const rootIsRepo = (0, import_fs86.existsSync)(import_path94.default.join(workspace.rootDir, ".git"));
     const repositories = rootIsRepo ? [resolved(workspace, rootRepositoryId(workspace), workspace.rootDir, void 0), ...children] : children;
     return {
       repositories: repositories.slice(0, BOOTSTRAP_LIMITS.maxRepositories),
@@ -116179,18 +116270,18 @@ function resolveRepositories(workspace) {
   };
 }
 function rootRepositoryId(workspace) {
-  const base = import_path96.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
+  const base = import_path94.default.basename(workspace.rootDir).replace(/[^A-Za-z0-9._-]/g, "-").replace(/^[^A-Za-z0-9]+/, "");
   return base.length > 0 ? base.slice(0, 64) : "workspace";
 }
 function resolved(workspace, repositoryId, absDir, role) {
-  const relPath2 = import_path96.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
+  const relPath2 = import_path94.default.relative(workspace.rootDir, absDir).replace(/\\/g, "/");
   return {
     repositoryId,
     relPath: relPath2,
     ...role !== void 0 ? { role } : {},
     absDir,
     gitHead: readGitHead(absDir),
-    isGitRepository: (0, import_fs87.existsSync)(import_path96.default.join(absDir, ".git"))
+    isGitRepository: (0, import_fs86.existsSync)(import_path94.default.join(absDir, ".git"))
   };
 }
 function repositoryOfPath(repositories, workspaceRelativePath) {
@@ -116383,7 +116474,7 @@ function synthesizeSystemFindings(input) {
     });
   }
   const manifestEntries = entries.filter(
-    (entry2) => MANIFEST_BASENAMES.has(import_path97.default.posix.basename(entry2.path).toLowerCase())
+    (entry2) => MANIFEST_BASENAMES.has(import_path95.default.posix.basename(entry2.path).toLowerCase())
   );
   const architectureLabels = /* @__PURE__ */ new Map();
   for (const entry2 of manifestEntries.slice(0, 40)) {
@@ -116428,7 +116519,7 @@ function synthesizeSystemFindings(input) {
     architecture.push({
       findingId: ids("arc"),
       class: "OBSERVED_IMPLEMENTATION",
-      statement: clip3(`${label} (declared by ${import_path97.default.posix.basename(entry2.path)}).`),
+      statement: clip3(`${label} (declared by ${import_path95.default.posix.basename(entry2.path)}).`),
       evidence: [fileRef(entry2)]
     });
   }
@@ -116573,7 +116664,7 @@ function synthesizeSystemFindings(input) {
       findingId: ids("con"),
       class: "OBSERVED_IMPLEMENTATION",
       statement: clip3(
-        `Repository "${repo.repositoryId}" builds with ${import_path97.default.posix.basename(marker.path)}.`
+        `Repository "${repo.repositoryId}" builds with ${import_path95.default.posix.basename(marker.path)}.`
       ),
       evidence: [fileRef(marker)]
     });
@@ -116645,9 +116736,9 @@ function clip3(value) {
 }
 function boundedRead(workspace, relPath2) {
   try {
-    const abs = import_path97.default.join(workspace.rootDir, relPath2);
-    if (!(0, import_fs88.existsSync)(abs)) return void 0;
-    const body = (0, import_fs88.readFileSync)(abs, "utf8");
+    const abs = import_path95.default.join(workspace.rootDir, relPath2);
+    if (!(0, import_fs87.existsSync)(abs)) return void 0;
+    const body = (0, import_fs87.readFileSync)(abs, "utf8");
     return body.length > MAX_MANIFEST_READ_BYTES ? body.slice(0, MAX_MANIFEST_READ_BYTES) : body;
   } catch {
     return void 0;
@@ -116688,25 +116779,25 @@ function safeSeals(workspace) {
   }
 }
 function bootstrapDir(workspace) {
-  return assertInsideWorkspace(workspace.rootDir, import_path98.default.join(workspace.sidecarDir, "bootstrap"));
+  return assertInsideWorkspace(workspace.rootDir, import_path96.default.join(workspace.sidecarDir, "bootstrap"));
 }
 function snapshotFile(workspace) {
   return assertInsideWorkspace(
     workspace.rootDir,
-    import_path98.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
+    import_path96.default.join(bootstrapDir(workspace), "current-system-snapshot.json")
   );
 }
 function readCurrentSystemSnapshot(workspace) {
   const file = snapshotFile(workspace);
-  if (!(0, import_fs89.existsSync)(file)) return void 0;
+  if (!(0, import_fs88.existsSync)(file)) return void 0;
   try {
-    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs89.readFileSync)(file, "utf8")));
+    return currentSystemSnapshotSchema.parse(JSON.parse((0, import_fs88.readFileSync)(file, "utf8")));
   } catch {
     return void 0;
   }
 }
 function persistSnapshot(workspace, snapshot2) {
-  (0, import_fs89.mkdirSync)(bootstrapDir(workspace), { recursive: true });
+  (0, import_fs88.mkdirSync)(bootstrapDir(workspace), { recursive: true });
   writeFileAtomic(snapshotFile(workspace), `${JSON.stringify(snapshot2, null, 2)}
 `);
 }
@@ -116879,7 +116970,7 @@ function inspectWorkspace(deps4, options) {
     }
     let body;
     try {
-      body = (0, import_fs89.readFileSync)(
+      body = (0, import_fs88.readFileSync)(
         assertInsideWorkspace(workspace.rootDir, entry2.path),
         "utf8"
       );
@@ -121519,12 +121610,12 @@ Examples:
 
 // ../../packages/mcp-server/dist/chunk-XJ3HVTHJ.js
 var import_buffer7 = require("buffer");
-var import_fs90 = require("fs");
-var import_path99 = __toESM(require("path"), 1);
+var import_fs89 = require("fs");
+var import_path97 = __toESM(require("path"), 1);
 var import_crypto31 = require("crypto");
-var import_path100 = __toESM(require("path"), 1);
+var import_path98 = __toESM(require("path"), 1);
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/core.js
 var NEVER2 = Object.freeze({
   status: "aborted"
 });
@@ -121583,7 +121674,7 @@ function config(newConfig) {
   return globalConfig;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/util.js
 var util_exports = {};
 __export(util_exports, {
   BIGINT_FORMAT_RANGES: () => BIGINT_FORMAT_RANGES,
@@ -122104,7 +122195,7 @@ var Class = class {
   }
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/errors.js
 var initializer = (inst, def) => {
   inst.name = "$ZodError";
   Object.defineProperty(inst, "_zod", {
@@ -122179,7 +122270,7 @@ function formatError(error2, _mapper) {
   return fieldErrors;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/parse.js
 var _parse = (_Err) => (schema, value, _ctx, _params) => {
   const ctx = _ctx ? Object.assign(_ctx, { async: false }) : { async: false };
   const result = schema._zod.run({ value, issues: [] }, ctx);
@@ -122231,7 +122322,7 @@ var _safeParseAsync = (_Err) => async (schema, value, _ctx) => {
 };
 var safeParseAsync = /* @__PURE__ */ _safeParseAsync($ZodRealError);
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/regexes.js
 var cuid = /^[cC][^\s-]{8,}$/;
 var cuid2 = /^[0-9a-z]+$/;
 var ulid = /^[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{26}$/;
@@ -122289,7 +122380,7 @@ var _null = /null/i;
 var lowercase = /^[^A-Z]*$/;
 var uppercase = /^[^a-z]*$/;
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/checks.js
 var $ZodCheck = /* @__PURE__ */ $constructor("$ZodCheck", (inst, def) => {
   var _a;
   inst._zod ?? (inst._zod = {});
@@ -122674,7 +122765,7 @@ var $ZodCheckOverwrite = /* @__PURE__ */ $constructor("$ZodCheckOverwrite", (ins
   };
 });
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/doc.js
 var Doc = class {
   constructor(args = []) {
     this.content = [];
@@ -122710,14 +122801,14 @@ var Doc = class {
   }
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/versions.js
 var version = {
   major: 4,
   minor: 0,
   patch: 0
 };
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/schemas.js
 var $ZodType = /* @__PURE__ */ $constructor("$ZodType", (inst, def) => {
   var _a;
   inst ?? (inst = {});
@@ -123955,7 +124046,7 @@ function handleRefineResult(result, payload, input, inst) {
   }
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/locales/en.js
 var parsedType = (data) => {
   const t = typeof data;
   switch (t) {
@@ -124073,7 +124164,7 @@ function en_default2() {
   };
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/registries.js
 var $ZodRegistry = class {
   constructor() {
     this._map = /* @__PURE__ */ new Map();
@@ -124121,7 +124212,7 @@ function registry() {
 }
 var globalRegistry = /* @__PURE__ */ registry();
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/api.js
 function _string(Class2, params) {
   return new Class2({
     type: "string",
@@ -124560,7 +124651,7 @@ function _refine(Class2, fn, _params) {
   return schema;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/core/to-json-schema.js
 var JSONSchemaGenerator = class {
   constructor(params) {
     this.counter = 0;
@@ -125327,7 +125418,7 @@ function isTransforming(_schema, _ctx) {
   throw new Error(`Unknown schema type: ${def.type}`);
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/mini/schemas.js
 var ZodMiniType = /* @__PURE__ */ $constructor("ZodMiniType", (inst, def) => {
   if (!inst._zod)
     throw new Error("Uninitialized schema in ZodMiniType.");
@@ -125373,7 +125464,7 @@ function object(shape, params) {
   return new ZodMiniObject(def);
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-compat.js
 function isZ4Schema(s) {
   const schema = s;
   return !!schema._zod;
@@ -125517,7 +125608,7 @@ function getLiteralValue(schema) {
   return void 0;
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/iso.js
 var iso_exports2 = {};
 __export(iso_exports2, {
   ZodISODate: () => ZodISODate,
@@ -125558,7 +125649,7 @@ function duration3(params) {
   return _isoDuration(ZodISODuration, params);
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/errors.js
 var initializer2 = (inst, issues) => {
   $ZodError.init(inst, issues);
   inst.name = "ZodError";
@@ -125592,13 +125683,13 @@ var ZodRealError = $constructor("ZodError", initializer2, {
   Parent: Error
 });
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/parse.js
 var parse2 = /* @__PURE__ */ _parse(ZodRealError);
 var parseAsync2 = /* @__PURE__ */ _parseAsync(ZodRealError);
 var safeParse3 = /* @__PURE__ */ _safeParse(ZodRealError);
 var safeParseAsync3 = /* @__PURE__ */ _safeParseAsync(ZodRealError);
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/schemas.js
 var ZodType2 = /* @__PURE__ */ $constructor("ZodType", (inst, def) => {
   $ZodType.init(inst, def);
   inst.def = def;
@@ -126209,10 +126300,10 @@ function preprocess(fn, schema) {
   return pipe(transform(fn), schema);
 }
 
-// ../../node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
+// ../../../../../specbridge/node_modules/.pnpm/zod@3.25.76/node_modules/zod/v4/classic/external.js
 config(en_default2());
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/types.js
 var LATEST_PROTOCOL_VERSION = "2025-11-25";
 var SUPPORTED_PROTOCOL_VERSIONS = [LATEST_PROTOCOL_VERSION, "2025-06-18", "2025-03-26", "2024-11-05", "2024-10-07"];
 var RELATED_TASK_META_KEY = "io.modelcontextprotocol/related-task";
@@ -127743,12 +127834,12 @@ var UrlElicitationRequiredError = class extends McpError {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/interfaces.js
 function isTerminal(status) {
   return status === "completed" || status === "failed" || status === "cancelled";
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Options.js
 var ignoreOverride = /* @__PURE__ */ Symbol("Let zodToJsonSchema decide on which parser to use");
 var defaultOptions = {
   name: void 0,
@@ -127782,7 +127873,7 @@ var getDefaultOptions = (options) => typeof options === "string" ? {
   ...options
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/Refs.js
 var getRefs = (options) => {
   const _options = getDefaultOptions(options);
   const currentPath = _options.name !== void 0 ? [..._options.basePath, _options.definitionPath, _options.name] : _options.basePath;
@@ -127803,7 +127894,7 @@ var getRefs = (options) => {
   };
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/errorMessages.js
 function addErrorMessage(res, key, errorMessage2, refs) {
   if (!refs?.errorMessages)
     return;
@@ -127819,7 +127910,7 @@ function setResponseValueAndErrors(res, key, value, errorMessage2, refs) {
   addErrorMessage(res, key, errorMessage2, refs);
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/getRelativePath.js
 var getRelativePath = (pathA, pathB) => {
   let i2 = 0;
   for (; i2 < pathA.length && i2 < pathB.length; i2++) {
@@ -127829,7 +127920,7 @@ var getRelativePath = (pathA, pathB) => {
   return [(pathA.length - i2).toString(), ...pathB.slice(i2)].join("/");
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/any.js
 function parseAnyDef(refs) {
   if (refs.target !== "openAi") {
     return {};
@@ -127845,7 +127936,7 @@ function parseAnyDef(refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/array.js
 function parseArrayDef(def, refs) {
   const res = {
     type: "array"
@@ -127869,7 +127960,7 @@ function parseArrayDef(def, refs) {
   return res;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/bigint.js
 function parseBigintDef(def, refs) {
   const res = {
     type: "integer",
@@ -127915,24 +128006,24 @@ function parseBigintDef(def, refs) {
   return res;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/boolean.js
 function parseBooleanDef() {
   return {
     type: "boolean"
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/branded.js
 function parseBrandedDef(_def, refs) {
   return parseDef(_def.type._def, refs);
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/catch.js
 var parseCatchDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/date.js
 function parseDateDef(def, refs, overrideDateStrategy) {
   const strategy = overrideDateStrategy ?? refs.dateStrategy;
   if (Array.isArray(strategy)) {
@@ -127991,7 +128082,7 @@ var integerDateParser = (def, refs) => {
   return res;
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/default.js
 function parseDefaultDef(_def, refs) {
   return {
     ...parseDef(_def.innerType._def, refs),
@@ -127999,12 +128090,12 @@ function parseDefaultDef(_def, refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/effects.js
 function parseEffectsDef(_def, refs) {
   return refs.effectStrategy === "input" ? parseDef(_def.schema._def, refs) : parseAnyDef(refs);
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/enum.js
 function parseEnumDef(def) {
   return {
     type: "string",
@@ -128012,7 +128103,7 @@ function parseEnumDef(def) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/intersection.js
 var isJsonSchema7AllOfType = (type) => {
   if ("type" in type && type.type === "string")
     return false;
@@ -128054,7 +128145,7 @@ function parseIntersectionDef(def, refs) {
   } : void 0;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/literal.js
 function parseLiteralDef(def, refs) {
   const parsedType2 = typeof def.value;
   if (parsedType2 !== "bigint" && parsedType2 !== "number" && parsedType2 !== "boolean" && parsedType2 !== "string") {
@@ -128074,7 +128165,7 @@ function parseLiteralDef(def, refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/string.js
 var emojiRegex2 = void 0;
 var zodPatterns = {
   /**
@@ -128399,7 +128490,7 @@ function stringifyRegExpWithFlags(regex, refs) {
   return pattern;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/record.js
 function parseRecordDef(def, refs) {
   if (refs.target === "openAi") {
     console.warn("Warning: OpenAI may not support records in schemas! Try an array of key-value pairs instead.");
@@ -128451,7 +128542,7 @@ function parseRecordDef(def, refs) {
   return schema;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/map.js
 function parseMapDef(def, refs) {
   if (refs.mapStrategy === "record") {
     return parseRecordDef(def, refs);
@@ -128476,7 +128567,7 @@ function parseMapDef(def, refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nativeEnum.js
 function parseNativeEnumDef(def) {
   const object3 = def.values;
   const actualKeys = Object.keys(def.values).filter((key) => {
@@ -128490,7 +128581,7 @@ function parseNativeEnumDef(def) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/never.js
 function parseNeverDef(refs) {
   return refs.target === "openAi" ? void 0 : {
     not: parseAnyDef({
@@ -128500,7 +128591,7 @@ function parseNeverDef(refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/null.js
 function parseNullDef(refs) {
   return refs.target === "openApi3" ? {
     enum: ["null"],
@@ -128510,7 +128601,7 @@ function parseNullDef(refs) {
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/union.js
 var primitiveMappings = {
   ZodString: "string",
   ZodNumber: "number",
@@ -128578,7 +128669,7 @@ var asAnyOf = (def, refs) => {
   return anyOf.length ? { anyOf } : void 0;
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/nullable.js
 function parseNullableDef(def, refs) {
   if (["ZodString", "ZodNumber", "ZodBigInt", "ZodBoolean", "ZodNull"].includes(def.innerType._def.typeName) && (!def.innerType._def.checks || !def.innerType._def.checks.length)) {
     if (refs.target === "openApi3") {
@@ -128610,7 +128701,7 @@ function parseNullableDef(def, refs) {
   return base && { anyOf: [base, { type: "null" }] };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/number.js
 function parseNumberDef(def, refs) {
   const res = {
     type: "number"
@@ -128659,7 +128750,7 @@ function parseNumberDef(def, refs) {
   return res;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/object.js
 function parseObjectDef(def, refs) {
   const forceOptionalIntoNullable = refs.target === "openAi";
   const result = {
@@ -128729,7 +128820,7 @@ function safeIsOptional(schema) {
   }
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/optional.js
 var parseOptionalDef = (def, refs) => {
   if (refs.currentPath.toString() === refs.propertyPath?.toString()) {
     return parseDef(def.innerType._def, refs);
@@ -128748,7 +128839,7 @@ var parseOptionalDef = (def, refs) => {
   } : parseAnyDef(refs);
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/pipeline.js
 var parsePipelineDef = (def, refs) => {
   if (refs.pipeStrategy === "input") {
     return parseDef(def.in._def, refs);
@@ -128768,12 +128859,12 @@ var parsePipelineDef = (def, refs) => {
   };
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/promise.js
 function parsePromiseDef(def, refs) {
   return parseDef(def.type._def, refs);
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/set.js
 function parseSetDef(def, refs) {
   const items = parseDef(def.valueType._def, {
     ...refs,
@@ -128793,7 +128884,7 @@ function parseSetDef(def, refs) {
   return schema;
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/tuple.js
 function parseTupleDef(def, refs) {
   if (def.rest) {
     return {
@@ -128821,24 +128912,24 @@ function parseTupleDef(def, refs) {
   }
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/undefined.js
 function parseUndefinedDef(refs) {
   return {
     not: parseAnyDef(refs)
   };
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/unknown.js
 function parseUnknownDef(refs) {
   return parseAnyDef(refs);
 }
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parsers/readonly.js
 var parseReadonlyDef = (def, refs) => {
   return parseDef(def.innerType._def, refs);
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/selectParser.js
 var selectParser = (def, typeName, refs) => {
   switch (typeName) {
     case ZodFirstPartyTypeKind.ZodString:
@@ -128914,7 +129005,7 @@ var selectParser = (def, typeName, refs) => {
   }
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/parseDef.js
 function parseDef(def, refs, forceResolution = false) {
   const seenItem = refs.seen.get(def);
   if (refs.override) {
@@ -128970,7 +129061,7 @@ var addMeta = (def, refs, jsonSchema) => {
   return jsonSchema;
 };
 
-// ../../node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
+// ../../../../../specbridge/node_modules/.pnpm/zod-to-json-schema@3.25.2_zod@3.25.76/node_modules/zod-to-json-schema/dist/esm/zodToJsonSchema.js
 var zodToJsonSchema = (schema, options) => {
   const refs = getRefs(options);
   let definitions = typeof options === "object" && options.definitions ? Object.entries(options.definitions).reduce((acc, [name2, schema2]) => ({
@@ -129032,7 +129123,7 @@ var zodToJsonSchema = (schema, options) => {
   return combined;
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/zod-json-schema-compat.js
 function mapMiniTarget(t) {
   if (!t)
     return "draft-7";
@@ -129074,7 +129165,7 @@ function parseWithCompat(schema, data) {
   return result.data;
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/protocol.js
 var DEFAULT_REQUEST_TIMEOUT_MSEC = 6e4;
 var Protocol = class {
   constructor(_options) {
@@ -130028,7 +130119,7 @@ function mergeCapabilities(base, additional) {
   return result;
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/validation/ajv-provider.js
 var import_ajv = __toESM(require_ajv(), 1);
 var import_ajv_formats = __toESM(require_dist2(), 1);
 function createDefaultAjvInstance() {
@@ -130096,7 +130187,7 @@ var AjvJsonSchemaValidator = class {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/server.js
 var ExperimentalServerTasks = class {
   constructor(_server) {
     this._server = _server;
@@ -130309,7 +130400,7 @@ var ExperimentalServerTasks = class {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/helpers.js
 function assertToolsCallTaskCapability(requests, method, entityName) {
   if (!requests) {
     throw new Error(`${entityName} does not support task creation (required for ${method})`);
@@ -130344,7 +130435,7 @@ function assertClientRequestTaskCapability(requests, method, entityName) {
   }
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/index.js
 var Server = class extends Protocol {
   /**
    * Initializes this server with the given name and version information.
@@ -130724,7 +130815,7 @@ var Server = class extends Protocol {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/completable.js
 var COMPLETABLE_SYMBOL = /* @__PURE__ */ Symbol.for("mcp.completable");
 function isCompletable(schema) {
   return !!schema && typeof schema === "object" && COMPLETABLE_SYMBOL in schema;
@@ -130738,7 +130829,7 @@ var McpZodTypeKind;
   McpZodTypeKind2["Completable"] = "McpCompletable";
 })(McpZodTypeKind || (McpZodTypeKind = {}));
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/uriTemplate.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/uriTemplate.js
 var MAX_TEMPLATE_LENGTH = 1e6;
 var MAX_VARIABLE_LENGTH = 1e6;
 var MAX_TEMPLATE_EXPRESSIONS = 1e4;
@@ -130960,7 +131051,7 @@ var UriTemplate = class _UriTemplate {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/toolNameValidation.js
 var TOOL_NAME_REGEX = /^[A-Za-z0-9._-]{1,128}$/;
 function validateToolName(name) {
   const warnings = [];
@@ -131018,7 +131109,7 @@ function validateAndWarnToolName(name) {
   return result.isValid;
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/experimental/tasks/mcp-server.js
 var ExperimentalMcpServerTasks = class {
   constructor(_mcpServer) {
     this._mcpServer = _mcpServer;
@@ -131033,7 +131124,7 @@ var ExperimentalMcpServerTasks = class {
   }
 };
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/mcp.js
 var McpServer = class {
   constructor(serverInfo, options) {
     this._registeredResources = {};
@@ -131850,17 +131941,17 @@ var EMPTY_COMPLETION_RESULT = {
 };
 
 // ../../packages/mcp-server/dist/chunk-XJ3HVTHJ.js
+var import_fs90 = require("fs");
 var import_fs91 = require("fs");
+var import_path99 = __toESM(require("path"), 1);
 var import_fs92 = require("fs");
-var import_path101 = __toESM(require("path"), 1);
-var import_fs93 = require("fs");
 var import_os3 = __toESM(require("os"), 1);
-var import_path102 = __toESM(require("path"), 1);
+var import_path100 = __toESM(require("path"), 1);
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var import_node_process11 = __toESM(require("process"), 1);
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/shared/stdio.js
 var ReadBuffer = class {
   append(chunk) {
     this._buffer = this._buffer ? Buffer.concat([this._buffer, chunk]) : chunk;
@@ -131888,7 +131979,7 @@ function serializeMessage(message2) {
   return JSON.stringify(message2) + "\n";
 }
 
-// ../../node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
+// ../../../../../specbridge/node_modules/.pnpm/@modelcontextprotocol+sdk@1.29.0_zod@3.25.76/node_modules/@modelcontextprotocol/sdk/dist/esm/server/stdio.js
 var StdioServerTransport = class {
   constructor(_stdin = import_node_process11.default.stdin, _stdout = import_node_process11.default.stdout) {
     this._stdin = _stdin;
@@ -132314,10 +132405,10 @@ function validateProjectRoot(value, source, cwd) {
       remediation: ["Pass a plain filesystem path as --project-root."]
     };
   }
-  const resolved2 = import_path99.default.resolve(cwd, value);
+  const resolved2 = import_path97.default.resolve(cwd, value);
   let canonical;
   try {
-    canonical = (0, import_fs90.realpathSync)(resolved2);
+    canonical = (0, import_fs89.realpathSync)(resolved2);
   } catch {
     return {
       ok: false,
@@ -132330,7 +132421,7 @@ function validateProjectRoot(value, source, cwd) {
   }
   let stats;
   try {
-    stats = (0, import_fs90.statSync)(canonical);
+    stats = (0, import_fs89.statSync)(canonical);
   } catch {
     return {
       ok: false,
@@ -132587,8 +132678,8 @@ var paginationShape = external_exports.object({
   nextCursor: external_exports.string().optional()
 });
 function repoRelative2(workspace, target) {
-  const relative = import_path100.default.isAbsolute(target) ? import_path100.default.relative(workspace.rootDir, target) : target;
-  const posix = relative.split(import_path100.default.sep).join("/");
+  const relative = import_path98.default.isAbsolute(target) ? import_path98.default.relative(workspace.rootDir, target) : target;
+  const posix = relative.split(import_path98.default.sep).join("/");
   return posix === "" ? "." : posix;
 }
 function toDiagnosticView(workspace, diagnostic) {
@@ -133088,7 +133179,7 @@ function registerRunResources(server, context) {
         throw resourceNotFound(`Run "${runId}"`, "List runs with the run_list tool.");
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs91.existsSync)(directory) ? (0, import_fs91.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs90.existsSync)(directory) ? (0, import_fs90.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       return jsonContents(context, uri.href, buildRunDetail(workspace, record5, artifactNames));
     }
   );
@@ -134904,7 +134995,7 @@ function registerRunReadTool(server, context) {
         });
       }
       const directory = runDir(workspace, record5.runId);
-      const artifactNames = (0, import_fs92.existsSync)(directory) ? (0, import_fs92.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
+      const artifactNames = (0, import_fs91.existsSync)(directory) ? (0, import_fs91.readdirSync)(directory).filter((name) => !REDACTED_ARTIFACTS2.has(name)).sort((a2, b) => a2.localeCompare(b, "en")) : [];
       const detail = buildRunDetail(workspace, record5, artifactNames);
       const lines = [
         `Run ${detail.summary.runId} \u2014 ${detail.summary.runType} for spec "${detail.summary.specName}"${detail.summary.taskId !== void 0 ? `, task ${detail.summary.taskId}` : ""}.`,
@@ -135264,7 +135355,7 @@ function registerSpecRunVerificationTool(server, context) {
         durationMs: command.durationMs,
         timedOut: command.timedOut
       }));
-      const reportPath = result.artifactsDir !== void 0 ? import_path101.default.relative(workspace.rootDir, result.artifactsDir).split(import_path101.default.sep).join("/") : void 0;
+      const reportPath = result.artifactsDir !== void 0 ? import_path99.default.relative(workspace.rootDir, result.artifactsDir).split(import_path99.default.sep).join("/") : void 0;
       const commandLines = commands.map(
         (command) => `- ${command.name}: ${command.disposition}${command.disposition === "executed" ? command.passed ? " (passed)" : ` (FAILED, exit ${command.exitCode ?? "none"})` : ""}`
       );
@@ -135383,18 +135474,18 @@ var conformanceSummaryShape = external_exports.object({
   note: external_exports.string()
 });
 async function invocationFreeConformanceSummary(profile) {
-  const scratch = (0, import_fs93.mkdtempSync)(import_path102.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
+  const scratch = (0, import_fs92.mkdtempSync)(import_path100.default.join(import_os3.default.tmpdir(), "specbridge-mcp-conformance-"));
   let result;
   try {
     result = await runRunnerConformance({
       profile,
       workspaceRoot: scratch,
-      runDir: import_path102.default.join(scratch, ".specbridge-conformance-runs"),
+      runDir: import_path100.default.join(scratch, ".specbridge-conformance-runs"),
       invocationsAllowed: false,
       timeoutMs: RUNNER_PROBE_TIMEOUT_MS
     });
   } finally {
-    (0, import_fs93.rmSync)(scratch, { recursive: true, force: true });
+    (0, import_fs92.rmSync)(scratch, { recursive: true, force: true });
   }
   return {
     passed: result.passed,
@@ -139281,8 +139372,8 @@ async function runMcpServe(argv2, io = {
 }
 
 // ../../packages/mcp-server/dist/index.js
-var import_fs94 = require("fs");
-var import_path103 = __toESM(require("path"), 1);
+var import_fs93 = require("fs");
+var import_path101 = __toESM(require("path"), 1);
 async function runMcpDoctor(options = {}) {
   const checks = [];
   const env = options.env ?? process.env;
@@ -139375,7 +139466,7 @@ async function runMcpDoctor(options = {}) {
   const pluginRoot = env["CLAUDE_PLUGIN_ROOT"];
   if (pluginRoot !== void 0 && pluginRoot.length > 0) {
     const missing = ["dist/mcp-server.cjs", "dist/cli.cjs"].filter(
-      (relative) => !(0, import_fs94.existsSync)(import_path103.default.join(pluginRoot, relative))
+      (relative) => !(0, import_fs93.existsSync)(import_path101.default.join(pluginRoot, relative))
     );
     checks.push(
       missing.length === 0 ? { name: "plugin-bundle", status: "ok", detail: `Bundled executables present under ${pluginRoot}` } : {

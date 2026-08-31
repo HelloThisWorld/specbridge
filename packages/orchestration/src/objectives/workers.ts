@@ -1,18 +1,7 @@
-import path from 'node:path';
-import type { AgentConfig, ClaudeProfileConfig, WorkspaceInfo } from '@specbridge/core';
+import type { AgentConfig, WorkspaceInfo } from '@specbridge/core';
 import { effectiveLocalInputCharacters } from '@specbridge/core';
-import {
-  buildClaudeInvocation,
-  cleanupTempFiles,
-  costFromEnvelope,
-  localStructuredInference,
-  claudeFailureProblem,
-  parseClaudeEnvelope,
-  probeClaude,
-  runSafeProcess,
-  usageFromEnvelope,
-} from '@specbridge/runners';
-import type { ClaudeProbe, LocalModelManager } from '@specbridge/runners';
+import { createDefaultRunnerRegistry, localStructuredInference } from '@specbridge/runners';
+import type { LocalModelManager, RunnerRegistry } from '@specbridge/runners';
 import { correctionMessage } from '../agents/contracts.js';
 import type { ObjectiveContractRole, ObjectiveOutputFor } from './contracts.js';
 import { OBJECTIVE_OUTPUT_JSON_SCHEMAS, validateObjectiveOutput } from './contracts.js';
@@ -154,6 +143,8 @@ export async function runLocalObjectiveRole<Role extends ObjectiveContractRole>(
 export interface LargeObjectiveInvocation<Role extends ObjectiveContractRole> {
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  /** Optional for backwards compatibility; production injects the shared registry. */
+  registry?: RunnerRegistry | undefined;
   runnerProfile: string;
   role: Role;
   packet: string;
@@ -167,36 +158,35 @@ export interface LargeObjectiveInvocation<Role extends ObjectiveContractRole> {
   scratchDir: string;
   timeoutMs: number;
   signal?: AbortSignal | undefined;
-  cachedProbe?: ClaudeProbe | undefined;
 }
 
 /**
- * Run one objective role on Claude Code. Reasoning roles get read-only
+ * Run one objective role on the explicitly selected runner. Reasoning roles get read-only
  * tools; the BUILDER gets the configured implementation tool policy — the
  * same policy task execution already uses, no wider.
  */
 export async function runLargeObjectiveRole<Role extends ObjectiveContractRole>(
   invocation: LargeObjectiveInvocation<Role>,
-): Promise<ObjectiveWorkerResult<Role> & { probe?: ClaudeProbe }> {
-  const profile = invocation.config.runnerProfiles[invocation.runnerProfile];
-  if (profile === undefined || profile.runner !== 'claude-code') {
+): Promise<ObjectiveWorkerResult<Role>> {
+  const registry = invocation.registry ?? createDefaultRunnerRegistry(invocation.config);
+  let profile;
+  try {
+    profile = registry.getProfile(invocation.runnerProfile);
+  } catch (cause) {
     return {
       ok: false,
       kind: 'worker-unavailable',
-      problem: `Runner profile "${invocation.runnerProfile}" is not a Claude Code profile.`,
+      problem: cause instanceof Error ? cause.message : `Runner profile "${invocation.runnerProfile}" is unavailable.`,
     };
   }
-  const claudeProfile = profile as ClaudeProfileConfig;
-  const probe =
-    invocation.cachedProbe ??
-    (await probeClaude(claudeProfile, {
-      ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
-    }));
-  if (!probe.found || probe.status === 'unavailable' || probe.status === 'error') {
+  if (profile.config.enabled !== true || profile.runner.invokeStructured === undefined) {
     return {
       ok: false,
       kind: 'worker-unavailable',
-      problem: `The Claude Code CLI is not available (status ${probe.status}).`,
+      problem:
+        profile.config.enabled !== true
+          ? `Runner profile "${invocation.runnerProfile}" is disabled.`
+          : `Runner profile "${invocation.runnerProfile}" does not support structured orchestration roles.`,
     };
   }
 
@@ -208,78 +198,42 @@ export async function runLargeObjectiveRole<Role extends ObjectiveContractRole>(
     invocation.packet,
   ].join('\n');
 
-  const plan = buildClaudeInvocation({
-    config: claudeProfile,
-    probe,
+  const result = await profile.runner.invokeStructured({
     prompt,
     toolPolicy: invocation.role === 'BUILDER' ? 'implementation' : 'inspect-only',
+    schemaName: invocation.role,
     outputJsonSchema: OBJECTIVE_OUTPUT_JSON_SCHEMAS[invocation.role],
-    execution: {
-      workspaceRoot: invocation.cwd,
-      runDir: invocation.scratchDir,
-      timeoutMs: invocation.timeoutMs,
-    },
+  }, {
+    workspaceRoot: invocation.cwd,
+    runDir: invocation.scratchDir,
+    timeoutMs: invocation.timeoutMs,
+    ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
   });
-
-  try {
-    const processResult = await runSafeProcess({
-      executable: plan.executable,
-      argv: plan.argv,
-      cwd: invocation.cwd,
-      timeoutMs: invocation.timeoutMs,
-      stdin: plan.stdin,
-      ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
-    });
-    if (processResult.status === 'cancelled') {
-      return { ok: false, kind: 'cancelled', problem: 'The worker invocation was cancelled.', probe };
-    }
-    if (processResult.status !== 'ok' && processResult.status !== 'nonzero-exit') {
-      return {
-        ok: false,
-        kind: 'worker-unavailable',
-        problem: processResult.failureReason ?? `the worker process ended with status ${processResult.status}`,
-        probe,
-      };
-    }
-    const parsed = parseClaudeEnvelope(processResult.stdout);
-    if (parsed.problem !== undefined) {
-      // See runLargeRole: a non-zero exit without an envelope must keep the
-      // CLI's bounded stderr diagnostic, and remains a worker failure.
-      return {
-        ok: false,
-        kind: 'invalid-output',
-        problem: claudeFailureProblem(parsed.problem, processResult),
-        probe,
-      };
-    }
-    const text =
-      parsed.structuredResult !== undefined
-        ? JSON.stringify(parsed.structuredResult)
-        : (parsed.reportText ?? '');
-    const validated = validateObjectiveOutput(invocation.role, text);
-    if (!validated.ok) {
-      return { ok: false, kind: 'invalid-output', problem: validated.problem, probe };
-    }
-    const usage = usageFromEnvelope(parsed.envelope, 0);
-    const cost = costFromEnvelope(parsed.envelope);
-    return {
-      ok: true,
-      output: validated.output,
-      raw: text,
-      usage: {
-        inputTokens: usage?.inputTokens ?? null,
-        outputTokens: usage?.outputTokens ?? null,
-        costUsd: cost !== null && cost !== undefined && cost.currency === 'USD' ? cost.amount : null,
-      },
-      probe,
-    };
-  } finally {
-    cleanupTempFiles(plan);
-    try {
-      const { rmSync } = await import('node:fs');
-      rmSync(path.join(invocation.scratchDir, 'tmp'), { recursive: true, force: true });
-    } catch {
-      // Temp cleanup is best-effort.
-    }
+  if (result.outcome === 'cancelled') {
+    return { ok: false, kind: 'cancelled', problem: result.failureReason ?? 'The worker invocation was cancelled.' };
   }
+  if (result.outcome !== 'completed' || result.text === undefined) {
+    return {
+      ok: false,
+      kind: result.outcome === 'malformed-output' ? 'invalid-output' : 'worker-unavailable',
+      problem:
+        result.failureReason ??
+        result.error?.message ??
+        `Runner profile "${invocation.runnerProfile}" ended with ${result.outcome}.`,
+    };
+  }
+  const validated = validateObjectiveOutput(invocation.role, result.text);
+  if (!validated.ok) {
+    return { ok: false, kind: 'invalid-output', problem: validated.problem };
+  }
+  return {
+    ok: true,
+    output: validated.output,
+    raw: result.text,
+    usage: {
+      inputTokens: result.usage?.inputTokens ?? null,
+      outputTokens: result.usage?.outputTokens ?? null,
+      costUsd: result.cost?.currency === 'USD' ? result.cost.amount : null,
+    },
+  };
 }

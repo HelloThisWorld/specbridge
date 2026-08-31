@@ -25,13 +25,14 @@ import type { AgentRole, ComplexityClass, EscalationReason } from './vocabulary.
  */
 
 export const LOCAL_WORKER_ID = 'local-llamacpp';
+/** @deprecated Persisted legacy identity; new strong workers use their runner profile name. */
 export const CLAUDE_WORKER_ID = 'claude-code';
 
 /**
  * Derive the worker roster from configuration. The local worker exists only
- * when local inference is enabled and coherently configured; the Claude Code
- * worker always exists (its availability is probed at dispatch time by the
- * existing runner platform, which owns detection).
+ * when local inference is enabled and coherently configured; the strong
+ * worker is the explicitly selected default runner profile. Availability is
+ * probed by the runner adapter at dispatch time.
  */
 export function resolveWorkers(config: AgentConfig): JobWorkerProfile[] {
   const workers: JobWorkerProfile[] = [];
@@ -59,7 +60,7 @@ export function resolveWorkers(config: AgentConfig): JobWorkerProfile[] {
   }
 
   workers.push({
-    workerId: CLAUDE_WORKER_ID,
+    workerId: config.defaultRunner,
     runnerProfile: config.defaultRunner,
     roles: [
       'CLASSIFIER',
@@ -170,7 +171,7 @@ export function selectWorker(input: SelectWorkerInput): WorkerSelection {
     );
     if (writer === undefined) {
       throw new OrchestrationError('SBO034', `No repository-writing worker is available for ${role}.`, {
-        remediation: ['Check the Claude Code runner with `specbridge runner doctor claude-code`.'],
+        remediation: ['Check the configured default runner with `specbridge runner doctor`.'],
         failureCategory: 'CAPABILITY_UNAVAILABLE',
       });
     }

@@ -1,19 +1,11 @@
-import { rmSync } from 'node:fs';
-import path from 'node:path';
-import type { AgentConfig, ClaudeProfileConfig, WorkspaceInfo } from '@specbridge/core';
+import type { AgentConfig, WorkspaceInfo } from '@specbridge/core';
 import { effectiveLocalInputCharacters } from '@specbridge/core';
 import {
   LocalModelManager,
-  buildClaudeInvocation,
+  createDefaultRunnerRegistry,
   localStructuredInference,
-  claudeFailureProblem,
-  parseClaudeEnvelope,
-  probeClaude,
-  runSafeProcess,
-  usageFromEnvelope,
-  costFromEnvelope,
 } from '@specbridge/runners';
-import type { ClaudeProbe, LocalModelEvent } from '@specbridge/runners';
+import type { LocalModelEvent, RunnerRegistry } from '@specbridge/runners';
 import {
   AGENT_OUTPUT_JSON_SCHEMAS,
   correctionMessage,
@@ -260,6 +252,8 @@ export async function runLocalRole<Role extends AgentContractRole>(
 export interface LargeRoleInvocation {
   workspace: WorkspaceInfo;
   config: AgentConfig;
+  /** Optional for backwards compatibility; production injects the shared registry. */
+  registry?: RunnerRegistry | undefined;
   /** Runner profile name of the large-agent worker. */
   runnerProfile: string;
   role: AgentContractRole;
@@ -268,17 +262,10 @@ export interface LargeRoleInvocation {
   scratchDir: string;
   timeoutMs: number;
   signal?: AbortSignal | undefined;
-  /**
-   * Reuse a probe from earlier in the SAME driver run. Probing spawns three
-   * short-lived processes; a long-running job invoking many reasoning roles
-   * would otherwise re-detect an executable that cannot change flag surface
-   * mid-run. A vanished CLI still fails safely at the real invocation.
-   */
-  cachedProbe?: ClaudeProbe | undefined;
 }
 
 /**
- * Run one reasoning role on Claude Code.
+ * Run one reasoning role on the explicitly selected runner profile.
  *
  * Inspect-only: the invocation gets Read/Glob/Grep, never Edit/Write/Bash,
  * so a reasoning dispatch cannot mutate the repository whatever the model
@@ -288,27 +275,26 @@ export interface LargeRoleInvocation {
  */
 export async function runLargeRole<Role extends AgentContractRole>(
   invocation: LargeRoleInvocation & { role: Role },
-): Promise<RoleWorkerResult<Role> & { probe?: ClaudeProbe }> {
-  const profile = invocation.config.runnerProfiles[invocation.runnerProfile];
-  if (profile === undefined || profile.runner !== 'claude-code') {
+): Promise<RoleWorkerResult<Role>> {
+  const registry = invocation.registry ?? createDefaultRunnerRegistry(invocation.config);
+  let profile;
+  try {
+    profile = registry.getProfile(invocation.runnerProfile);
+  } catch (cause) {
     return {
       ok: false,
       kind: 'worker-unavailable',
-      problem: `Runner profile "${invocation.runnerProfile}" is not a Claude Code profile.`,
+      problem: cause instanceof Error ? cause.message : `Runner profile "${invocation.runnerProfile}" is unavailable.`,
     };
   }
-  const claudeProfile = profile as ClaudeProfileConfig;
-
-  const probe =
-    invocation.cachedProbe ??
-    (await probeClaude(claudeProfile, {
-      ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
-    }));
-  if (!probe.found || probe.status === 'unavailable' || probe.status === 'error') {
+  if (profile.config.enabled !== true || profile.runner.invokeStructured === undefined) {
     return {
       ok: false,
       kind: 'worker-unavailable',
-      problem: `The Claude Code CLI is not available (status ${probe.status}).`,
+      problem:
+        profile.config.enabled !== true
+          ? `Runner profile "${invocation.runnerProfile}" is disabled.`
+          : `Runner profile "${invocation.runnerProfile}" does not support structured orchestration roles.`,
     };
   }
 
@@ -320,99 +306,52 @@ export async function runLargeRole<Role extends AgentContractRole>(
     invocation.packet,
   ].join('\n');
 
-  const plan = buildClaudeInvocation({
-    config: claudeProfile,
-    probe,
+  const result = await profile.runner.invokeStructured({
     prompt,
     toolPolicy: 'inspect-only',
+    schemaName: invocation.role,
     outputJsonSchema: AGENT_OUTPUT_JSON_SCHEMAS[invocation.role],
-    execution: {
-      workspaceRoot: invocation.workspace.rootDir,
-      runDir: invocation.scratchDir,
-      timeoutMs: invocation.timeoutMs,
-    },
+  }, {
+    workspaceRoot: invocation.workspace.rootDir,
+    runDir: invocation.scratchDir,
+    timeoutMs: invocation.timeoutMs,
+    ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
   });
-
-  try {
-    const processResult = await runSafeProcess({
-      executable: plan.executable,
-      argv: plan.argv,
-      cwd: invocation.workspace.rootDir,
-      timeoutMs: invocation.timeoutMs,
-      stdin: plan.stdin,
-      ...(invocation.signal !== undefined ? { signal: invocation.signal } : {}),
-    });
-    if (processResult.status === 'cancelled') {
-      return { ok: false, kind: 'cancelled', problem: 'The role invocation was cancelled.' };
-    }
-    if (processResult.status !== 'ok' && processResult.status !== 'nonzero-exit') {
-      return {
-        ok: false,
-        kind: 'worker-unavailable',
-        problem: processResult.failureReason ?? `the runner process ended with status ${processResult.status}`,
-      };
-    }
-    const parsed = parseClaudeEnvelope(processResult.stdout);
-    if (parsed.problem !== undefined) {
-      // A non-zero exit with no usable envelope means the CLI's own stderr
-      // message is the only explanation. Keep a bounded, scrubbed excerpt:
-      // a provider failure stays a WORKER failure, never a task failure.
-      return {
-        ok: false,
-        kind: 'invalid-output',
-        problem: claudeFailureProblem(parsed.problem, processResult),
-        probe,
-      };
-    }
-    const text =
-      parsed.structuredResult !== undefined
-        ? JSON.stringify(parsed.structuredResult)
-        : (parsed.reportText ?? '');
-    const validated = validateAgentOutput(invocation.role, text);
-    if (!validated.ok) {
-      if (looksLikeAuthenticationFailure(text)) {
-        return {
-          ok: false,
-          // NOT invalid-output: the worker is unusable, not incoherent, and
-          // the two need different answers from a person.
-          kind: 'worker-unavailable',
-          problem:
-            `The ${invocation.role} worker is not authenticated: ${observedExcerpt(text)}`,
-          observed: observedExcerpt(text),
-          probe,
-        };
-      }
-      return {
-        ok: false,
-        kind: 'invalid-output',
-        problem: validated.problem,
-        observed: observedExcerpt(text),
-        probe,
-      };
-    }
-    const usage = usageFromEnvelope(parsed.envelope, 0);
-    const cost = costFromEnvelope(parsed.envelope);
-    return {
-      ok: true,
-      output: validated.output,
-      raw: text,
-      usage: {
-        inputTokens: usage?.inputTokens ?? null,
-        outputTokens: usage?.outputTokens ?? null,
-        // Only provider-reported USD amounts count; nothing is fabricated.
-        costUsd: cost !== null && cost !== undefined && cost.currency === 'USD' ? cost.amount : null,
-      },
-      corrected: false,
-      probe,
-    };
-  } finally {
-    // The scratch directory holds only this invocation's temp schema file.
-    try {
-      rmSync(path.join(invocation.scratchDir, 'tmp'), { recursive: true, force: true });
-    } catch {
-      // Temp cleanup is best-effort; nothing durable lives there.
-    }
+  if (result.outcome === 'cancelled') {
+    return { ok: false, kind: 'cancelled', problem: result.failureReason ?? 'The role invocation was cancelled.' };
   }
+  if (result.outcome !== 'completed' || result.text === undefined) {
+    const observed = result.invalidStructuredOutput;
+    return {
+      ok: false,
+      kind: result.outcome === 'malformed-output' ? 'invalid-output' : 'worker-unavailable',
+      problem:
+        result.failureReason ??
+        result.error?.message ??
+        `Runner profile "${invocation.runnerProfile}" ended with ${result.outcome}.`,
+      ...(observed !== undefined ? { observed: observedExcerpt(observed) } : {}),
+    };
+  }
+  const validated = validateAgentOutput(invocation.role, result.text);
+  if (!validated.ok) {
+    return {
+      ok: false,
+      kind: 'invalid-output',
+      problem: validated.problem,
+      observed: observedExcerpt(result.text),
+    };
+  }
+  return {
+    ok: true,
+    output: validated.output,
+    raw: result.text,
+    usage: {
+      inputTokens: result.usage?.inputTokens ?? null,
+      outputTokens: result.usage?.outputTokens ?? null,
+      costUsd: result.cost?.currency === 'USD' ? result.cost.amount : null,
+    },
+    corrected: false,
+  };
 }
 
 /** Build (or reuse) the shared local model manager for a driver run. */

@@ -20,6 +20,8 @@ import type {
   RunnerDetectionResult,
   RunnerExecutionOptions,
   RunnerSelfTestResult,
+  StructuredInvocationInput,
+  StructuredInvocationResult,
   RunnerToolPolicy,
   StageGenerationInput,
   StageGenerationResult,
@@ -38,6 +40,7 @@ import { CLAUDE_DECLARED_CAPABILITIES, claudeCapabilitySet, probeClaude } from '
 import type { ClaudeEnvelope, ClaudeInvocationPlan } from './invocation.js';
 import {
   buildClaudeInvocation,
+  claudeFailureProblem,
   cleanupTempFiles,
   parseClaudeEnvelope,
   runClaudeInvocation,
@@ -230,6 +233,99 @@ export class ClaudeCodeRunner implements AgentRunner {
     const { report, ...rest } = mapped;
     const stageReport = report as StageRunnerReport | undefined;
     return { ...rest, ...(stageReport !== undefined ? { report: stageReport } : {}) };
+  }
+
+  async invokeStructured(
+    input: StructuredInvocationInput,
+    execution: RunnerExecutionOptions,
+  ): Promise<StructuredInvocationResult> {
+    const started = Date.now();
+    const probe = await this.probe();
+    const unavailable = this.unavailableResult(probe, started);
+    if (unavailable !== undefined) {
+      const { report: _report, ...rest } = unavailable;
+      return rest;
+    }
+    const plan = buildClaudeInvocation({
+      config: this.config,
+      probe,
+      prompt: input.prompt,
+      toolPolicy: input.toolPolicy,
+      outputJsonSchema: input.outputJsonSchema,
+      execution,
+    });
+    try {
+      const processResult = await runClaudeInvocation(plan, this.config, execution);
+      const parsed = parseClaudeEnvelope(processResult.stdout);
+      const usage = usageFromEnvelope(parsed.envelope, processResult.observation.durationMs);
+      const cost = costFromEnvelope(parsed.envelope);
+      const base = {
+        runner: this.name,
+        rawStdout: processResult.stdout,
+        rawStderr: processResult.stderr,
+        process: processResult.observation,
+        durationMs: Math.max(0, Date.now() - started),
+        warnings: plan.skippedFlags.map(
+          (flag) => `flag ${flag} is unsupported by this Claude Code version and was skipped`,
+        ),
+        ...(parsed.envelope?.session_id !== undefined
+          ? { sessionId: parsed.envelope.session_id }
+          : {}),
+        ...(usage !== undefined ? { usage } : {}),
+        ...(cost !== undefined ? { cost } : {}),
+      };
+      switch (processResult.status) {
+        case 'timeout':
+          return { ...base, outcome: 'timed-out', failureReason: processResult.failureReason ?? 'timeout' };
+        case 'cancelled':
+          return { ...base, outcome: 'cancelled', failureReason: processResult.failureReason ?? 'cancelled' };
+        case 'output-limit':
+        case 'spawn-failed':
+          return {
+            ...base,
+            outcome: 'failed',
+            failureReason: processResult.failureReason ?? processResult.status,
+          };
+        case 'ok':
+        case 'nonzero-exit':
+          break;
+      }
+      if (this.looksPermissionDenied(processResult, parsed.envelope?.subtype, parsed.envelope)) {
+        return {
+          ...base,
+          outcome: 'permission-denied',
+          failureReason: 'Claude Code reported a permission denial.',
+        };
+      }
+      if (processResult.status === 'nonzero-exit' || parsed.envelope?.is_error === true) {
+        return {
+          ...base,
+          outcome: 'malformed-output',
+          failureReason:
+            processResult.status === 'nonzero-exit'
+              ? claudeFailureProblem(parsed.problem ?? 'the runner produced no output', processResult)
+              : `Claude Code reported an error result${parsed.envelope?.subtype !== undefined ? ` (${parsed.envelope.subtype})` : ''}`,
+          ...(parsed.reportText !== undefined
+            ? { invalidStructuredOutput: parsed.reportText }
+            : {}),
+        };
+      }
+      const text =
+        parsed.structuredResult !== undefined
+          ? JSON.stringify(parsed.structuredResult)
+          : parsed.reportText;
+      if (text === undefined || safeJsonParse(text) === undefined) {
+        return {
+          ...base,
+          outcome: 'malformed-output',
+          failureReason: parsed.problem ?? 'the runner returned no valid JSON document',
+          ...(text !== undefined ? { invalidStructuredOutput: text } : {}),
+        };
+      }
+      return { ...base, outcome: 'completed', text: text.trim() };
+    } finally {
+      cleanupTempFiles(plan);
+    }
   }
 
   async executeTask(
