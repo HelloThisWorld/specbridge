@@ -1,79 +1,20 @@
 # SpecBridge CLI
 
-An open, model-agnostic spec runtime for existing Kiro projects. SpecBridge
-reads your current `.kiro/steering` and `.kiro/specs` files exactly where
-they are and adds validated stage authoring, explicit approvals,
-evidence-gated task execution, deterministic drift verification, an MCP
-server, and multi-runner agent execution on top — with no conversion, no
-duplicated specs, and no lock-in. Your `.kiro` files remain the source of
-truth and are never rewritten behind your back.
+SpecBridge turns rough software ideas into repository-grounded, research-backed, implementation-ready system design specifications.
 
-> The npm package is named `specbridge-cli` (the bare name `specbridge`
-> belongs to an unrelated project on npm). The installed command is still
-> `specbridge`.
+The CLI is a secondary interface for debugging and automation. Normal use happens through the lightweight Claude Code or Codex conversational integration.
 
-## Install
-
-```bash
-npm install -g specbridge-cli
-specbridge doctor
+```powershell
+specbridge bootstrap
+specbridge design start "Tenant-aware support" "Turn this bot into a multi-tenant SaaS"
+specbridge design read <session-id>
+specbridge design generate <session-id> problem-framing --file stage.json
+specbridge design research <session-id> --file report.json
+specbridge design evaluate <session-id>
+specbridge design approve <session-id> "I approve this specification"
+specbridge spec list
+specbridge spec show <slug>
+specbridge mcp
 ```
 
-One-off use without a global install:
-
-```bash
-npx -p specbridge-cli specbridge doctor
-```
-
-Requires Node.js >= 20. Standalone archives with a bundled Node.js runtime
-are available from the
-[GitHub releases](https://github.com/HelloThisWorld/specbridge/releases).
-
-## Quickstart
-
-Run inside any project that contains a `.kiro/` directory:
-
-```bash
-specbridge doctor        # read-only health check of the workspace
-specbridge spec list     # every spec, with classification and status
-specbridge spec show <name>
-specbridge compat check  # proves byte-identical .kiro round-trips
-```
-
-Inspect a durable Job's operational and token-conservation telemetry:
-
-```bash
-specbridge report job <jobId>
-specbridge report job <jobId> --verbose
-specbridge report job <jobId> --json
-```
-
-The report is observational and never grants authority or completion. JSON
-output preserves unknown usage as `null` and includes coverage metadata.
-
-Freeze and finalize a vNext.10.2 production qualification candidate:
-
-```bash
-specbridge orchestrate qualify freeze <run-id>
-specbridge orchestrate qualify release <run-id> --evidence <evidence.json>
-```
-
-The finalizer emits a deterministic `READY` or `NOT_READY`, preserves a
-finalized failure instead of overwriting it, and never tags or publishes a
-release.
-
-Full documentation, examples, templates, the extension SDK, and the Claude
-Code plugin live in the repository:
-<https://github.com/HelloThisWorld/specbridge>
-
-## Independent project
-
-SpecBridge is an independent open-source project. It is not affiliated
-with, endorsed by, or sponsored by Amazon Web Services, Inc. (AWS) or the
-Kiro team. Kiro is referenced only to describe compatibility with publicly
-documented project file locations and observable document formats. See
-[NOTICE.md](NOTICE.md).
-
-## License
-
-MIT — see [LICENSE](LICENSE).
+SpecBridge compiles portable Spec Packs and stops. It does not launch coding agents, own worktrees, schedule workers, or supervise implementation.

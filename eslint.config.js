@@ -6,10 +6,11 @@ export default tseslint.config(
     ignores: [
       '**/dist/**',
       '**/node_modules/**',
+      '.kiro/**',
+      '.specbridge/**',
+      '.codex-tmp-*',
+      'integrations/**',
       'tests/fixtures/**',
-      'examples/**',
-      'integrations/claude-code/**',
-      'integrations/mcp-server/**',
     ],
   },
   js.configs.recommended,
@@ -17,23 +18,8 @@ export default tseslint.config(
   {
     files: ['**/*.ts'],
     rules: {
-      '@typescript-eslint/no-unused-vars': [
-        'error',
-        { argsIgnorePattern: '^_', varsIgnorePattern: '^_' },
-      ],
+      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
       '@typescript-eslint/consistent-type-imports': 'error',
-    },
-  },
-  {
-    files: ['scripts/**/*.mjs'],
-    languageOptions: {
-      globals: {
-        process: 'readonly',
-        console: 'readonly',
-        Buffer: 'readonly',
-        URL: 'readonly',
-        setTimeout: 'readonly',
-      },
     },
   },
 );

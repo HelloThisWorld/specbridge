@@ -1,14 +1,13 @@
 {
   "mcpServers": {
     "specbridge": {
-      "command": "node",
+      "command": "specbridge",
       "args": [
-        "-e",
-        "const fs=require('node:fs'),path=require('node:path'),os=require('node:os'),Module=require('node:module'),cache=path.resolve(process.env.SPECBRIDGE_PLUGIN_CACHE_ROOT||path.join(process.env.CODEX_HOME||path.join(os.homedir(),'.codex'),'plugins','cache')),source=process._eval,candidates=[];if(fs.existsSync(cache))for(const marketplace of fs.readdirSync(cache,{withFileTypes:true})){if(!marketplace.isDirectory())continue;const pluginDir=path.join(cache,marketplace.name,'specbridge');if(!fs.existsSync(pluginDir))continue;for(const version of fs.readdirSync(pluginDir,{withFileTypes:true})){if(!version.isDirectory())continue;const root=path.join(pluginDir,version.name),manifestPath=path.join(root,'.codex-plugin','plugin.json'),configPath=path.join(root,'.mcp.json');try{const manifest=JSON.parse(fs.readFileSync(manifestPath,'utf8')),config=JSON.parse(fs.readFileSync(configPath,'utf8')),server=(config.mcpServers||config.mcp_servers||{}).specbridge,installed=fs.statSync(root);if(manifest.name==='specbridge'&&server?.command==='node'&&server.args?.[1]===source)candidates.push({root,installedAt:Math.max(installed.birthtimeMs,installed.mtimeMs)});}catch{}}}candidates.sort((a,b)=>b.installedAt-a.installedAt);if(candidates.length===0)throw new Error('The installed SpecBridge plugin could not be located in the Codex plugin cache');const file=path.join(candidates[0].root,'dist','mcp-launcher.cjs'),loaded=new Module(file);loaded.filename=file;loaded.paths=Module._nodeModulePaths(path.dirname(file));loaded._compile(fs.readFileSync(file,'utf8'),file);"
+        "mcp"
       ],
       "enabled": true,
       "startup_timeout_sec": 15,
-      "tool_timeout_sec": 3600
+      "tool_timeout_sec": 300
     }
   }
 }

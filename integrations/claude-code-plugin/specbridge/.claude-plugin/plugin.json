@@ -1,8 +1,8 @@
 {
   "name": "specbridge",
   "displayName": "SpecBridge",
-  "description": "Continue existing Kiro specs with Claude Code: validated stage authoring, verified interactive task execution, and deterministic spec drift checks.",
-  "version": "1.1.0",
+  "description": "Turn rough product ideas into repository-grounded, research-backed, implementation-ready system design specifications.",
+  "version": "2.0.0",
   "author": {
     "name": "HelloThisWorld"
   },
@@ -10,11 +10,11 @@
   "repository": "https://github.com/HelloThisWorld/specbridge",
   "license": "MIT",
   "keywords": [
-    "spec-driven-development",
-    "kiro",
+    "system-design",
+    "specification",
+    "repository-intelligence",
+    "research",
     "mcp",
-    "claude-code",
-    "ai-agents",
-    "spec-verification"
+    "claude-code"
   ]
 }
