@@ -1,37 +1,16 @@
-# Dependencies
+# Dependencies and generated output
 node_modules/
-
-# Build output
 dist/
-*.tsbuildinfo
-dist-release/
-
-# The GitHub Action ships its reproducible bundle in-repo (checked in CI).
-!integrations/github-action/dist/
-
-# The Claude Code plugin ships its reproducible bundle in-repo too, so
-# installing the plugin straight from the GitHub marketplace source works.
-!integrations/claude-code-plugin/specbridge/dist/
-# Reference extensions ship their committed self-contained entrypoints;
-# locally built archives stay ignored.
-!examples/extensions/*/dist/
-examples/extensions/*/dist/*.zip
-
-# Test output
 coverage/
-
-# Tooling caches
+*.tsbuildinfo
 .eslintcache
-
-# Logs
 *.log
 
-# OS noise
+# SpecBridge working state (portable approved specs remain trackable)
+.specbridge/*
+!.specbridge/specs/
+!.specbridge/specs/**
+
+# Operating-system noise
 .DS_Store
 Thumbs.db
-
-# NOTE: `.specbridge/` directories are intentionally NOT ignored here.
-# The example projects commit sidecar state on purpose so the repository
-# demonstrates how SpecBridge stores runtime state outside `.kiro`.
-# End-user projects typically add `.specbridge/runs`, `.specbridge/cache`,
-# and `.specbridge/reports` to their own .gitignore.

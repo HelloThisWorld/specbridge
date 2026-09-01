@@ -1,7 +1,7 @@
 {
   "name": "specbridge",
-  "version": "1.1.0",
-  "description": "Use SpecBridge as a first-class Codex frontend: discuss product work, draft and intake specs, inspect and continue jobs, and operate evidence-governed workflows through the bundled MCP server.",
+  "version": "2.0.0",
+  "description": "Turn rough product ideas into repository-grounded, research-backed, implementation-ready system design specifications.",
   "author": {
     "name": "HelloThisWorld"
   },
@@ -9,19 +9,19 @@
   "repository": "https://github.com/HelloThisWorld/specbridge",
   "license": "MIT",
   "keywords": [
-    "spec-driven-development",
-    "kiro",
+    "system-design",
+    "specification",
+    "repository-intelligence",
+    "research",
     "mcp",
-    "codex",
-    "ai-agents",
-    "spec-verification"
+    "codex"
   ],
   "skills": "./skills/",
   "mcpServers": "./.mcp.json",
   "interface": {
     "displayName": "SpecBridge",
-    "shortDescription": "Govern product specs and evidence-backed delivery",
-    "longDescription": "Use Codex as the conversation frontend for SpecBridge. Discuss and draft product requirements, run repository-grounded Spec Intake, inspect or continue governed jobs, and use the same local MCP control plane as the Claude Code integration. Final approval remains a human-only CLI action.",
+    "shortDescription": "Compile ideas into implementation-ready system specs",
+    "longDescription": "Use Codex as the conversational frontend for SpecBridge 2.0. Ground designs in the current repository, research uncertain external facts, resolve only material product decisions with the human, evaluate design quality, and compile a portable Spec Pack. Implementation remains entirely outside SpecBridge.",
     "developerName": "HelloThisWorld",
     "category": "Developer Tools",
     "capabilities": [
@@ -31,11 +31,9 @@
     ],
     "websiteURL": "https://github.com/HelloThisWorld/specbridge",
     "defaultPrompt": [
-      "Turn what we discussed into a SpecBridge spec",
-      "Show the status of my SpecBridge work",
-      "Check whether SpecBridge is healthy in this project"
-    ],
-    "brandColor": "#2563EB",
-    "screenshots": []
+      "Turn this idea into a complete system design spec",
+      "Review my SpecBridge design for gaps",
+      "Show my SpecBridge design status"
+    ]
   }
 }

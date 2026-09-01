@@ -1,90 +1,77 @@
-# Architecture
+# SpecBridge 2.0 architecture
 
-SpecBridge is a pnpm workspace of small, single-purpose TypeScript packages.
-The CLI is a thin presentation layer; everything it does is available as a
-library, so future surfaces (GitHub Action, MCP server) reuse the same code
-instead of duplicating logic.
+SpecBridge is a design compiler, not an implementation control plane. Each operation is bounded, persisted, and exposed through a compact CLI/MCP surface. The conversational frontend owns the dialogue; SpecBridge owns the specification artifact.
 
-## Packages
+## Repository Intelligence
 
-| Package | Responsibility |
-| --- | --- |
-| `@specbridge/core` | Shared types, errors, workspace detection, path-safety guards, atomic writes, hashing, versioned sidecar state (`.specbridge/`) |
-| `@specbridge/compat-kiro` | Everything `.kiro`: line-preserving Markdown model, steering loader, spec discovery/classification, tolerant parsers, round-trip writer, workspace analysis, agent-context assembly |
-| `@specbridge/workflow` | v0.2 authoring and approval engine: spec-name validation, offline templates, atomic spec creation, deterministic analyzers, workflow state machine, approval hashing + stale detection, sidecar audits |
-| `@specbridge/drift` | Deterministic drift verification (v0.4): git comparison resolution, spec policies, the SBV001–SBV025 rule engine, affected-spec resolution, trusted-command orchestration, schema-validated report assembly — plus the v0.1 primitives |
-| `@specbridge/runners` | Model/agent adapters behind one `AgentRunner` interface (mock implemented; CLI runners detection-only) |
-| `@specbridge/reporting` | Terminal formatting, JSON report envelope, self-contained HTML rendering |
-| `@specbridge/orchestration` | v1.1 governed agent orchestration (phase/action state machine, intent and clarification contracts, execution-plan lifecycle with freshness binding, failure taxonomy, deterministic retry/repair/replan engine, budgets, versioned persistence), the v1.2 long-running job runtime (scheduler, workers, routing), and the objective runtime (dynamic work graphs, context projections, worker supervision, isolated worktrees, evaluation, aggregation, single-writer integration) |
-| `@specbridge/mission` | Mission Discovery: the fail-closed mission lifecycle, conversation provenance, deterministic coverage and materiality analysis, the Architecture Constitution, ADRs, the product Contract Registry with change requests, and the deterministic mission→Kiro spec compiler |
-| `@specbridge/mcp-server` | v0.5 local stdio MCP server: typed tool/resource/prompt adapters over the packages above, SBMCP error model, bounded outputs, per-project write mutex — no duplicated logic |
-| `specbridge` (packages/cli) | Commander-based CLI wiring the above together (including `mcp serve/doctor/manifest/tools`) |
+Repository Intelligence creates a durable `CurrentSystemSnapshot` and deterministic retrieval index. Scanning is bounded by file count and byte limits, ignores symlinks, binaries, caches, dependencies, and generated output, and records the Git baseline when available.
 
-Dependency direction (arrows = "may import"):
+Facts are classified as `SEALED_PRODUCT_TRUTH`, `DOCUMENTED_ARCHITECTURE`, `OBSERVED_IMPLEMENTATION`, `INFERRED_PATTERN`, or `ASSUMPTION`. Existing source code is observed implementation—not automatic product truth. Relevant context is retrieved through paths, symbols, imports, tests, module proximity, and token overlap instead of a vector database or whole-repository prompt.
 
-```
-cli ──▶ workflow ──▶ compat-kiro ──▶ core
-cli ──▶ reporting   ──▶ core
-cli ──▶ drift ─▶ compat-kiro, core, workflow, evidence, runners
-cli ──▶ orchestration ─▶ compat-kiro, core, workflow, execution, evidence
-cli ──▶ mcp-server ─▶ compat-kiro, core, workflow, execution, evidence, drift,
-                      orchestration
-runners ─▶ core
-integrations/github-action ─▶ drift, reporting, core (bundled; no CLI dependency)
-integrations/claude-code-plugin ─▶ cli + mcp-server (bundled; self-contained at runtime)
+## DesignSession
+
+A `DesignSession` is the complete durable state needed to produce one specification. Its lifecycle is deliberately small:
+
+```text
+DRAFT → DISCOVERING → NEEDS_INPUT / RESEARCHING → DESIGNING
+      → READY_FOR_REVIEW → APPROVED → SUPERSEDED
 ```
 
-## Design principles
+The session stores the repository baseline, stage outputs, material decisions, structured research reports, approval text, and revision. It contains no implementation tasks, workers, attempts, candidates, worktrees, agent sessions, or retry state.
 
-1. **`.kiro` is the source of truth.** SpecBridge state never leaks into
-   `.kiro` files; it lives in `.specbridge/` (see
-   [sidecar-state.md](sidecar-state.md)).
-2. **Line preservation over ASTs.** Documents are stored as exact lines plus
-   their individual line endings. Structure (headings, tasks) is *detected
-   over* the lines and carries line indexes; serialization replays the
-   original bytes. This is what makes the no-op round trip byte-identical
-   and edits surgical. See `packages/compat-kiro/src/markdown-document.ts`.
-3. **Tolerant reading, honest reporting.** Parsers never throw on unusual
-   content. Anything unrecognized becomes a diagnostic (`info`/`warning`/
-   `error`) and the bytes are preserved. A file with zero recognized
-   structure is still a valid file.
-4. **Deterministic by default.** Default commands are offline and produce
-   deterministic output; analysis of the same bytes always yields the same
-   findings, and the only nondeterminism in sidecar state is the timestamp
-   (behind an injectable clock in tests). Model invocation is always explicit
-   and never required.
-5. **Honest stubs.** Documented-but-unimplemented commands and runners exist,
-   are labeled "(planned)", and exit with `NOT_IMPLEMENTED` errors. Nothing
-   pretends to work.
-6. **Approval is recorded, never inferred.** A stage is approved only when
-   sidecar state holds a hash of the exact approved bytes; read paths
-   recompute staleness in memory and never rewrite state.
+## Product Authority
 
-## Data flow of a typical command
+Question routing has five outcomes:
 
-`specbridge spec context <name>`:
+1. Repository evidence answers repository facts.
+2. Stable technical facts are answered directly.
+3. Ordinary engineering choices are decided by SpecBridge.
+4. Current, uncertain, or version-dependent external facts go to research.
+5. Decisions that define product behavior go to the human.
 
-1. `core.resolveWorkspace` walks up from the cwd to find `.kiro`.
-2. `compat-kiro.requireSpec` locates the spec folder.
-3. `compat-kiro.analyzeSpec` loads each Markdown file into a
-   `MarkdownDocument`, runs the tolerant parsers, checks the no-op round trip
-   in memory, and merges diagnostics.
-4. `compat-kiro.buildAgentContextMarkdown` assembles steering + documents +
-   progress + working agreements deterministically.
-5. The CLI prints the result; with `--out` it writes atomically via
-   `core.writeFileAtomic`, refusing paths inside `.kiro`.
+Only the fifth category blocks for product input. Research produces evidence and recommendations; it never silently creates product requirements.
 
-## Exit-code contract
+## ResearchProvider and ResearchGate
 
-`0` success · `1` findings / quality-gate failure (doctor problems, round-trip
-mismatch, future drift) · `2` invalid usage, unknown resource, or runtime
-error. Planned commands exit `2`.
+`ResearchProvider` is a replaceable two-method interface: check availability and return a structured `ResearchReport`. Reports separate facts, constraints, options, and recommendations; record sources, access dates, relevant versions, contradictions, confidence, implications, and unresolved issues.
 
-## Testing strategy
+The `ResearchGate` chooses `ANSWER_DIRECTLY`, `USE_REPOSITORY`, `REUSE_RESEARCH`, `RESEARCH`, `ASK_HUMAN`, or `ENGINEERING_DECISION`. Fresh reports are reused by normalized question. External execution stays outside the domain model, allowing web, Claude, Codex, or future research providers without embedding another agent runtime.
 
-Tests live at the repository root (`tests/`) and run against package
-*sources* via vitest aliases, so the suite needs no build. CI additionally
-builds and smoke-tests the **built** CLI against `examples/` on
-Linux/macOS/Windows × Node 20/22. Fixtures under `tests/fixtures/` are
-byte-exact (protected by `.gitattributes -text`) and cover CRLF, BOM, UTF-8,
-hand-edited, partial, and unknown-heading workspaces.
+## SystemDesignPipeline
+
+The pipeline advances one validated stage at a time:
+
+1. Problem framing
+2. Functional requirements
+3. Non-functional requirements
+4. Scale and capacity
+5. High-level architecture
+6. Critical deep dives
+7. Alternatives and trade-offs
+8. Data design
+9. APIs and events
+10. Reliability
+11. Security
+12. Observability
+13. Deployment and brownfield migration
+14. Testing and acceptance
+
+Each provider request receives only the current stage, rough idea, snapshot, bounded relevant repository context, completed stage outputs, decisions, and research. Schema validation prevents a single unconstrained prompt from becoming the product architecture.
+
+## Spec Compiler
+
+The compiler turns an approved `DesignSession` into a versioned, self-contained Spec Pack beneath `.specbridge/specs/<slug>/`. Markdown is authoritative for humans and coding agents; `spec.yaml` supplies indexing, baseline, revision, approval, goals, non-goals, and document paths. Previous revisions are archived before replacement.
+
+`AGENT_HANDOFF.md` defines the implementation boundary and traceability expectations. Consuming it never requires the SpecBridge runtime. Revision archives retain the previous Spec Pack; manifest entity hashes and change metadata identify changed product decisions, requirements, and acceptance criteria without duplicating their prose.
+
+## Spec Evaluator
+
+The evaluator reports independent findings for completeness, grounding, product clarity, architecture coherence, trade-offs, research, security, reliability, implementation readiness, acceptance coverage, and open risks. Deterministic gates check blocking decisions, requirement-to-acceptance and component-to-requirement traceability, scope creep, contradictions, repository drift, research freshness, and required design sections. An optional model-assisted pass can add semantic warnings or failures but can never erase a deterministic failure. Evaluation is content-bound, so a changed design or repository baseline must be evaluated again before approval.
+
+## Frontend integrations
+
+Claude Code and Codex integrations are thin skill bundles connected to the same canonical MCP command. They recognize natural-language design requests, guide the conversation, invoke one bounded operation at a time, and record explicit natural-language approval. They do not bundle a second runtime or launch implementation agents.
+
+## Product boundary
+
+SpecBridge never launches coding agents, owns worktrees, schedules workers, resumes coding sessions, performs provider handoffs, or retries implementation. After approval, Claude Code, Codex, another coding harness, or human developers independently own all implementation work.

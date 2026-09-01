@@ -1,62 +1,24 @@
 {
   "name": "specbridge-cli",
-  "version": "1.1.0",
-  "description": "An open, model-agnostic spec runtime for existing Kiro projects. No conversion, no duplicated specs, no lock-in.",
+  "version": "2.0.0",
+  "description": "CLI for repository intelligence, design sessions, evaluation, and portable Spec Packs.",
   "license": "MIT",
   "type": "module",
-  "bin": {
-    "specbridge": "dist/index.js"
-  },
-  "files": [
-    "dist",
-    "!dist/**/*.map",
-    "README.md",
-    "LICENSE",
-    "NOTICE.md"
-  ],
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "keywords": [
-    "kiro",
-    "specs",
-    "spec-driven-development",
-    "cli",
-    "ai-agents"
-  ],
+  "bin": {"specbridge": "dist/index.cjs"},
+  "files": ["dist", "!dist/**/*.map", "README.md", "LICENSE", "NOTICE.md"],
+  "engines": {"node": ">=20.0.0"},
   "scripts": {
     "build": "tsup",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@modelcontextprotocol/sdk": "1.29.0",
-    "@specbridge/autonomy": "workspace:*",
-    "@specbridge/intake": "workspace:*",
-    "@specbridge/mission": "workspace:*",
-    "commander": "^12.1.0",
-    "execa": "^9.4.0",
-    "picocolors": "^1.1.0",
-    "picomatch": "^4.0.2",
-    "yaml": "^2.5.0",
-    "zod": "^3.23.8"
+    "@specbridge/core": "workspace:*",
+    "@specbridge/design": "workspace:*",
+    "@specbridge/mcp-server": "workspace:*",
+    "commander": "^12.1.0"
   },
   "devDependencies": {
-    "@specbridge/compat-kiro": "workspace:*",
-    "@specbridge/context": "workspace:*",
-    "@specbridge/core": "workspace:*",
-    "@specbridge/drift": "workspace:*",
-    "@specbridge/evidence": "workspace:*",
-    "@specbridge/execution": "workspace:*",
-    "@specbridge/extension-sdk": "workspace:*",
-    "@specbridge/extensions": "workspace:*",
-    "@specbridge/mcp-server": "workspace:*",
-    "@specbridge/orchestration": "workspace:*",
-    "@specbridge/registry": "workspace:*",
-    "@specbridge/reporting": "workspace:*",
-    "@specbridge/runners": "workspace:*",
-    "@specbridge/templates": "workspace:*",
-    "@specbridge/workflow": "workspace:*",
     "tsup": "^8.3.0",
     "typescript": "^5.6.0"
   }

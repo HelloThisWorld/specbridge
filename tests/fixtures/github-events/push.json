@@ -1,5 +1,0 @@
-{
-  "ref": "refs/heads/main",
-  "before": "BASE_SHA_PLACEHOLDER",
-  "after": "HEAD_SHA_PLACEHOLDER"
-}

@@ -1,4 +1,6 @@
 packages:
-  - packages/*
-  - integrations/github-action
-  - integrations/claude-code-plugin
+  - packages/core
+  - packages/repository
+  - packages/design
+  - packages/mcp-server
+  - packages/cli

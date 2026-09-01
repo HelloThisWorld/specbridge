@@ -1,7 +1,7 @@
 {
   "name": "@specbridge/mcp-server",
-  "version": "1.1.0",
-  "description": "Local stdio MCP server exposing SpecBridge workspace, spec, task, run, and verification capabilities as typed tools, resources, and prompts.",
+  "version": "2.0.0",
+  "description": "Compact design-oriented MCP surface for SpecBridge 2.0.",
   "license": "MIT",
   "type": "module",
   "main": "./dist/index.js",
@@ -12,19 +12,8 @@
       "import": "./dist/index.js"
     }
   },
-  "files": [
-    "dist"
-  ],
-  "engines": {
-    "node": ">=20.0.0"
-  },
-  "keywords": [
-    "mcp",
-    "model-context-protocol",
-    "kiro",
-    "specs",
-    "spec-driven-development"
-  ],
+  "files": ["dist"],
+  "engines": {"node": ">=20.0.0"},
   "scripts": {
     "build": "tsup",
     "clean": "node -e \"require('node:fs').rmSync('dist', { recursive: true, force: true })\"",
@@ -32,21 +21,8 @@
   },
   "dependencies": {
     "@modelcontextprotocol/sdk": "1.29.0",
-    "@specbridge/autonomy": "workspace:*",
-    "@specbridge/compat-kiro": "workspace:*",
     "@specbridge/core": "workspace:*",
-    "@specbridge/drift": "workspace:*",
-    "@specbridge/evidence": "workspace:*",
-    "@specbridge/execution": "workspace:*",
-    "@specbridge/extension-sdk": "workspace:*",
-    "@specbridge/extensions": "workspace:*",
-    "@specbridge/intake": "workspace:*",
-    "@specbridge/mission": "workspace:*",
-    "@specbridge/orchestration": "workspace:*",
-    "@specbridge/registry": "workspace:*",
-    "@specbridge/runners": "workspace:*",
-    "@specbridge/templates": "workspace:*",
-    "@specbridge/workflow": "workspace:*",
+    "@specbridge/design": "workspace:*",
     "zod": "^3.23.8"
   },
   "devDependencies": {
